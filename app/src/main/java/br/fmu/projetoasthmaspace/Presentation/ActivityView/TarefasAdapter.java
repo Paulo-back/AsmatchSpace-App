@@ -10,20 +10,20 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import java.util.List;
 
-import br.fmu.projetoasthmaspace.Core.Domain.Lembretes.LembreteResponse;
+import br.fmu.projetoasthmaspace.Core.Domain.Lembretes.LembreteInstancia;
 import br.fmu.projetoasthmaspace.R;
 
 public class TarefasAdapter extends RecyclerView.Adapter<TarefasAdapter.TarefaViewHolder> {
 
     public interface OnTarefaConcluidaListener {
-        void onTarefaConcluida(LembreteResponse tarefa);
+        void onTarefaConcluida(LembreteInstancia tarefa);
     }
 
-    private List<LembreteResponse> lista;
-    private OnTarefaConcluidaListener listener;
+    private final List<LembreteInstancia> lista;
+    private final OnTarefaConcluidaListener listener;
 
-    public TarefasAdapter(List<LembreteResponse> lista, OnTarefaConcluidaListener listener) {
-        this.lista = lista;
+    public TarefasAdapter(List<LembreteInstancia> lista, OnTarefaConcluidaListener listener) {
+        this.lista    = lista;
         this.listener = listener;
     }
 
@@ -35,13 +35,11 @@ public class TarefasAdapter extends RecyclerView.Adapter<TarefasAdapter.TarefaVi
         return new TarefaViewHolder(v);
     }
 
-
     @Override
     public void onBindViewHolder(@NonNull TarefaViewHolder holder, int position) {
-        LembreteResponse tarefa = lista.get(position);
+        LembreteInstancia tarefa = lista.get(position);
 
         holder.checkbox.setOnCheckedChangeListener(null);
-
         holder.checkbox.setText(tarefa.titulo + " - " + tarefa.getHorarioFormatado());
         holder.checkbox.setChecked(false);
 
@@ -49,7 +47,6 @@ public class TarefasAdapter extends RecyclerView.Adapter<TarefasAdapter.TarefaVi
             if (isChecked) listener.onTarefaConcluida(tarefa);
         });
     }
-
 
     @Override
     public int getItemCount() {
@@ -65,4 +62,3 @@ public class TarefasAdapter extends RecyclerView.Adapter<TarefasAdapter.TarefaVi
         }
     }
 }
-

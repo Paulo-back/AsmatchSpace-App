@@ -1,5 +1,6 @@
 package br.fmu.projetoasthmaspace.Presentation.Adapter;
 
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.ViewGroup;
 
@@ -41,7 +42,7 @@ public class PoluenteAdapter
             int position
     ) {
         Poluente p = lista.get(position);
-
+        Log.d("POLUENTE", "valor raw: [" + p.valor + "]");
         holder.binding.poluenteSigla.setText(p.sigla);
         holder.binding.poluenteNomeCompleto.setText(p.nome);
         holder.binding.poluenteValor.setText(p.valor);

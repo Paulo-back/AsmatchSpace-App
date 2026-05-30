@@ -21,3 +21,4 @@ dependencyResolutionManagement {
 
 rootProject.name = "Projeto Asthma Space"
 include(":app")
+include(":wear")

@@ -2,6 +2,9 @@ package br.fmu.projetoasthmaspace.Data.Service.Client;
 
 import java.util.List;
 
+import br.fmu.projetoasthmaspace.Core.Domain.Lembretes.LembreteInstancia;
+import br.fmu.projetoasthmaspace.Core.Domain.Lembretes.LembreteTemplate;
+import br.fmu.projetoasthmaspace.Core.Domain.Lembretes.LembreteTemplateRequest;
 import br.fmu.projetoasthmaspace.Core.Domain.Log.ConsultaInfoResponse;
 import br.fmu.projetoasthmaspace.Core.Domain.Log.RedefinirSenhaRequest;
 import br.fmu.projetoasthmaspace.Core.Domain.Log.VerificarIdentidadeRequest;
@@ -26,6 +29,7 @@ import retrofit2.http.Body;
 import retrofit2.http.DELETE;
 import retrofit2.http.GET;
 import retrofit2.http.Header;
+import retrofit2.http.PATCH;
 import retrofit2.http.POST;
 import retrofit2.http.PUT;
 import retrofit2.http.Path;
@@ -95,23 +99,32 @@ public interface ApiService {
     // -------- LEMBRETES --------
 
 
-    @POST("lembretes/cadastro")
-    Call<Void> registrarLembrete (@Body LembreteRequest request);
-    @GET("lembretes/listar")
-    Call<PaginaResponse<LembreteResponse>> listarLembretes(
-            @Query("page") int page,
-            @Query("size") int size
-    );
+    @POST("lembretes/templates")
+    Call<LembreteTemplate> criarTemplate(@Body LembreteTemplateRequest request);
 
-
-    @PUT("lembretes/atualizar/{id}")
-    Call<Void> atualizarDados(
+    @PUT("lembretes/templates/{id}")
+    Call<LembreteTemplate> atualizarTemplate(
             @Path("id") Long id,
-            @Body LembreteUpdateRequest request
-    );
+            @Body LembreteTemplateRequest request);
 
-    @DELETE("/lembretes/deletar/{id}") // Verifique o endpoint correto
-    Call<Void> deletarLembrete(@Path("id") Long id);
+    @GET("lembretes/templates")
+    Call<List<LembreteTemplate>> listarTemplates();
+
+    @GET("lembretes/instancias")
+    Call<List<LembreteInstancia>> listarInstanciasPorPeriodo(
+            @Query("diasPassados") int diasPassados);
+
+    @DELETE("lembretes/templates/{id}")
+    Call<Void> deletarTemplate(@Path("id") Long id);
+
+    // Instâncias (o que aparece na tela do dia)
+    @GET("lembretes/instancias/hoje")
+    Call<List<LembreteInstancia>> instanciasDeHoje();
+
+    @PATCH("lembretes/instancias/{id}/status")
+    Call<Void> atualizarStatus(
+            @Path("id") Long id,
+            @Query("status") String status);
 
     // -------- Redefinir Senha --------
 

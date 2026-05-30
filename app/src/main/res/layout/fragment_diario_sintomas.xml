@@ -6,7 +6,6 @@
     android:layout_height="match_parent"
     tools:context=".Presentation.Fragment.DiarioSintomasFragment">
 
-    <!-- Fundo Padrão -->
     <ImageView
         android:id="@+id/corFundo"
         android:layout_width="0dp"
@@ -29,7 +28,7 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
-    <!-- Cabeçalho Fixo -->
+    <!-- Cabeçalho fixo — sempre visível -->
     <TextView
         android:id="@+id/diario_title"
         android:layout_width="wrap_content"
@@ -43,7 +42,6 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
-    <!-- ===== NOVOS CONTROLES ===== -->
     <LinearLayout
         android:id="@+id/controls_container"
         android:layout_width="0dp"
@@ -57,7 +55,6 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/diario_title">
 
-        <!-- Seletor de Período -->
         <Spinner
             android:id="@+id/spinner_periodo"
             android:layout_width="0dp"
@@ -72,7 +69,6 @@
             android:layout_width="12dp"
             android:layout_height="wrap_content" />
 
-        <!-- Botão Baixar PDF -->
         <Button
             android:id="@+id/btn_baixar_pdf"
             android:layout_width="wrap_content"
@@ -102,12 +98,27 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/controls_container" />
 
-    <!-- Área de Rolagem -->
+    <!-- Skeleton — visível enquanto carrega -->
+    <ViewStub
+        android:id="@+id/skeleton_stub"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:inflatedId="@+id/skeleton_container"
+        android:layout="@layout/layout_skeleton_diario"
+        android:layout_marginTop="16dp"
+        app:layout_constraintTop_toBottomOf="@+id/diario_subtitle"
+        app:layout_constraintBottom_toTopOf="@+id/fab_adicionar_sintoma"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"/>
+
+    <!-- Conteúdo real — começa GONE -->
     <ScrollView
+        android:id="@+id/scroll_diario"
         android:layout_width="0dp"
         android:layout_height="0dp"
         android:layout_marginTop="16dp"
         android:padding="16dp"
+        android:visibility="gone"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
@@ -118,7 +129,6 @@
             android:layout_height="wrap_content"
             android:orientation="vertical">
 
-            <!-- Container de Hoje -->
             <LinearLayout
                 android:id="@+id/lista_anotacoes_hoje"
                 android:layout_width="match_parent"
@@ -163,7 +173,6 @@
                     android:orientation="vertical" />
             </LinearLayout>
 
-            <!-- Container de Anteriores -->
             <LinearLayout
                 android:id="@+id/lista_anotacoes_anteriores"
                 android:layout_width="match_parent"
@@ -198,7 +207,6 @@
 
     </ScrollView>
 
-    <!-- Botão para Editar Anotação -->
     <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:id="@+id/fab_editar_sintoma"
         android:layout_width="wrap_content"
@@ -209,7 +217,6 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent" />
 
-    <!-- Botão para Adicionar Nova Anotação -->
     <com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton
         android:id="@+id/fab_adicionar_sintoma"
         android:layout_width="wrap_content"

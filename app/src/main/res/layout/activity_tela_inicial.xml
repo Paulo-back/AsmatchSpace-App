@@ -29,9 +29,20 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
-    <ScrollView
+    <!-- Skeleton — visível enquanto carrega -->
+    <ViewStub
+        android:id="@+id/skeleton_stub"
         android:layout_width="match_parent"
-        android:layout_height="match_parent">
+        android:layout_height="match_parent"
+        android:inflatedId="@+id/skeleton_container"
+        android:layout="@layout/layout_skeleton_tela_inicial" />
+
+    <!-- Conteúdo real — começa GONE, aparece após carregar -->
+    <ScrollView
+        android:id="@+id/scroll_conteudo"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:visibility="gone">
 
         <androidx.constraintlayout.widget.ConstraintLayout
             android:layout_width="match_parent"
@@ -77,7 +88,7 @@
                         android:id="@+id/text_aqi_valor"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="42"
+                        android:text="--"
                         android:textColor="@color/white"
                         android:textSize="80sp"
                         android:textStyle="bold"/>
@@ -89,7 +100,7 @@
                         android:paddingHorizontal="16dp"
                         android:paddingVertical="4dp"
                         android:background="@drawable/fundo_text"
-                        android:text="Bom"
+                        android:text=""
                         android:textColor="@color/white"
                         android:textSize="20sp"
                         android:textStyle="bold"/>
@@ -99,7 +110,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="16dp"
-                        android:text="Aproveite para se exercitar ao ar livre!"
+                        android:text=""
                         android:textAlignment="center"
                         android:textColor="#D0FFFFFF"
                         android:textSize="16sp" />
@@ -120,7 +131,6 @@
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@id/card_principal" />
 
-            <!-- RecyclerView - ESTA É A MUDANÇA PRINCIPAL -->
             <androidx.recyclerview.widget.RecyclerView
                 android:id="@+id/recycler_poluentes"
                 android:layout_width="0dp"

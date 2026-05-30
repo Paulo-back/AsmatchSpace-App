@@ -1,15 +1,29 @@
 package br.fmu.projetoasthmaspace.Presentation.ActivityView;
 
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.graphics.BitmapShader;
+import android.graphics.Canvas;
+import android.graphics.Paint;
+import android.graphics.Shader;
+import android.graphics.drawable.BitmapDrawable;
+import android.net.Uri;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.Log;
+import android.view.View;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.facebook.shimmer.ShimmerFrameLayout;
+
+import java.io.File;
+import java.io.InputStream;
 import java.util.Objects;
 
+import br.fmu.projetoasthmaspace.Core.Session.UserSessionManager;
 import br.fmu.projetoasthmaspace.Data.Service.ViaCep.ApiViaCep;
 import br.fmu.projetoasthmaspace.Core.Util.AtualizarRequest;
 import br.fmu.projetoasthmaspace.Core.Domain.Cliente.DadosDetalhamentoCliente;
@@ -23,7 +37,7 @@ import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 
-public class InformacoesPessoaisActivity extends BaseActivity  {
+public class InformacoesPessoaisActivity extends BaseActivity {
 
     private ActivityInformacoesPessoaisBinding binding;
     private ApiService api;
@@ -34,6 +48,11 @@ public class InformacoesPessoaisActivity extends BaseActivity  {
     private String snapMedicamentos, snapProblemaResp, snapEmergencia;
     private String snapCep, snapLogradouro, snapNumero, snapComplemento, snapBairro, snapCidade, snapUf;
 
+    // ── Skeleton ──────────────────────────────────────────────────────────────
+    private ShimmerFrameLayout shimmerLayout;
+    private boolean skeletonInflado = false;
+    // ─────────────────────────────────────────────────────────────────────────
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -42,6 +61,9 @@ public class InformacoesPessoaisActivity extends BaseActivity  {
 
         api = ApiClient.getApiService(getApplicationContext());
 
+        // Mostra skeleton antes de qualquer chamada
+        mostrarSkeleton();
+        carregarFotoPerfil();
         carregarDadosBackend();
         configurarMascaraData();
 
@@ -54,16 +76,70 @@ public class InformacoesPessoaisActivity extends BaseActivity  {
 
         binding.btnVoltar.setOnClickListener(v -> finish());
         binding.btnSalvar.setOnClickListener(v -> salvarAlteracoes());
+
     }
 
-    // --------------------------------------------------------- máscara data
+    private void carregarFotoPerfil() {
+        String path = new UserSessionManager(this).getFotoPath();
+        if (path == null) return;
+
+        File arquivo = new File(path);
+        if (!arquivo.exists()) return;
+
+        try {
+            InputStream is = getContentResolver().openInputStream(Uri.fromFile(arquivo));
+            Bitmap original = BitmapFactory.decodeStream(is);
+            binding.imgPerfil.setImageDrawable(
+                    new BitmapDrawable(getResources(), recortarCirculo(original))
+            );
+        } catch (Exception e) {
+            Log.e("INFO_PESSOAIS", "Erro ao carregar foto: " + e.getMessage());
+        }
+    }
+
+    private Bitmap recortarCirculo(Bitmap bitmap) {
+        int tamanho = Math.min(bitmap.getWidth(), bitmap.getHeight());
+        Bitmap saida = Bitmap.createBitmap(tamanho, tamanho, Bitmap.Config.ARGB_8888);
+        Canvas canvas = new Canvas(saida);
+        Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG);
+        paint.setShader(new BitmapShader(
+                Bitmap.createScaledBitmap(bitmap, tamanho, tamanho, true),
+                Shader.TileMode.CLAMP, Shader.TileMode.CLAMP
+        ));
+        canvas.drawCircle(tamanho / 2f, tamanho / 2f, tamanho / 2f, paint);
+        return saida;
+    }
+
+
+    // ── Skeleton helpers ──────────────────────────────────────────────────────
+
+    private void mostrarSkeleton() {
+        if (!skeletonInflado) {
+            shimmerLayout = (ShimmerFrameLayout) binding.skeletonStub.inflate();
+            skeletonInflado = true;
+        }
+        shimmerLayout.setVisibility(View.VISIBLE);
+        shimmerLayout.startShimmer();
+        binding.scrollFormulario.setVisibility(View.GONE);
+    }
+
+    private void esconderSkeleton() {
+        if (shimmerLayout != null) {
+            shimmerLayout.stopShimmer();
+            shimmerLayout.setVisibility(View.GONE);
+        }
+        // Esconde também o ScrollView container do skeleton
+        binding.scrollSkeleton.setVisibility(View.GONE);
+        binding.scrollFormulario.setVisibility(View.VISIBLE);
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+
     private void configurarMascaraData() {
         binding.edtDataNascimento.addTextChangedListener(new TextWatcher() {
             private boolean isUpdating = false;
-
             @Override public void beforeTextChanged(CharSequence s, int st, int c, int a) {}
             @Override public void onTextChanged(CharSequence s, int st, int b, int c) {}
-
             @Override
             public void afterTextChanged(Editable s) {
                 if (isUpdating) return;
@@ -81,7 +157,6 @@ public class InformacoesPessoaisActivity extends BaseActivity  {
         });
     }
 
-    // --------------------------------------------------------- backend
     private void carregarDadosBackend() {
         api.getMeuPerfil().enqueue(new Callback<DadosDetalhamentoCliente>() {
             @Override
@@ -91,9 +166,11 @@ public class InformacoesPessoaisActivity extends BaseActivity  {
                     dadosAtuais = response.body();
                     atualizarUI(dadosAtuais);
                     tirarSnapshot();
+                    esconderSkeleton(); // ← só após preencher o formulário
                 } else {
                     Toast.makeText(InformacoesPessoaisActivity.this,
                             "Erro ao buscar dados", Toast.LENGTH_SHORT).show();
+                    esconderSkeleton(); // ← evita tela travada
                 }
             }
 
@@ -102,44 +179,45 @@ public class InformacoesPessoaisActivity extends BaseActivity  {
                 Log.e("INFO_PESSOAIS", "Falha: " + t.getMessage());
                 Toast.makeText(InformacoesPessoaisActivity.this,
                         "Falha na comunicação", Toast.LENGTH_SHORT).show();
+                esconderSkeleton(); // ← evita tela travada
             }
         });
     }
 
     private void tirarSnapshot() {
-        snapNome          = binding.edtNome.getText().toString().trim();
-        snapTelefone      = binding.edtTelefone.getText().toString().trim();
-        snapCpf           = binding.edtCPF.getText().toString().trim();
+        snapNome           = binding.edtNome.getText().toString().trim();
+        snapTelefone       = binding.edtTelefone.getText().toString().trim();
+        snapCpf            = binding.edtCPF.getText().toString().trim();
         snapDataNascimento = binding.edtDataNascimento.getText().toString().trim();
-        snapSexo          = binding.spinnerSexo.getSelectedItem().toString();
-        snapMedicamentos  = binding.edtMedicamentos.getText().toString().trim();
-        snapProblemaResp  = binding.edtProblemaResp.getText().toString().trim();
-        snapEmergencia    = binding.edtEmergencia.getText().toString().trim();
-        snapCep           = binding.edtCEP.getText().toString().trim();
-        snapLogradouro    = binding.edtLogradouro.getText().toString().trim();
-        snapNumero        = binding.edtNumero.getText().toString().trim();
-        snapComplemento   = binding.edtComplemento.getText().toString().trim();
-        snapBairro        = binding.edtBairro.getText().toString().trim();
-        snapCidade        = binding.edtCidade.getText().toString().trim();
-        snapUf            = binding.edtUF.getText().toString().trim();
+        snapSexo           = binding.spinnerSexo.getSelectedItem().toString();
+        snapMedicamentos   = binding.edtMedicamentos.getText().toString().trim();
+        snapProblemaResp   = binding.edtProblemaResp.getText().toString().trim();
+        snapEmergencia     = binding.edtEmergencia.getText().toString().trim();
+        snapCep            = binding.edtCEP.getText().toString().trim();
+        snapLogradouro     = binding.edtLogradouro.getText().toString().trim();
+        snapNumero         = binding.edtNumero.getText().toString().trim();
+        snapComplemento    = binding.edtComplemento.getText().toString().trim();
+        snapBairro         = binding.edtBairro.getText().toString().trim();
+        snapCidade         = binding.edtCidade.getText().toString().trim();
+        snapUf             = binding.edtUF.getText().toString().trim();
     }
 
     private boolean houveAlteracao() {
-        return !eq(binding.edtNome.getText().toString().trim(),              snapNome)
-                || !eq(binding.edtTelefone.getText().toString().trim(),          snapTelefone)
-                || !eq(binding.edtCPF.getText().toString().trim(),               snapCpf)
-                || !eq(binding.edtDataNascimento.getText().toString().trim(),    snapDataNascimento)
-                || !eq(binding.spinnerSexo.getSelectedItem().toString(),         snapSexo)
-                || !eq(binding.edtMedicamentos.getText().toString().trim(),      snapMedicamentos)
-                || !eq(binding.edtProblemaResp.getText().toString().trim(),      snapProblemaResp)
-                || !eq(binding.edtEmergencia.getText().toString().trim(),        snapEmergencia)
-                || !eq(binding.edtCEP.getText().toString().trim(),               snapCep)
-                || !eq(binding.edtLogradouro.getText().toString().trim(),        snapLogradouro)
-                || !eq(binding.edtNumero.getText().toString().trim(),            snapNumero)
-                || !eq(binding.edtComplemento.getText().toString().trim(),       snapComplemento)
-                || !eq(binding.edtBairro.getText().toString().trim(),            snapBairro)
-                || !eq(binding.edtCidade.getText().toString().trim(),            snapCidade)
-                || !eq(binding.edtUF.getText().toString().trim(),                snapUf);
+        return !eq(binding.edtNome.getText().toString().trim(),           snapNome)
+                || !eq(binding.edtTelefone.getText().toString().trim(),       snapTelefone)
+                || !eq(binding.edtCPF.getText().toString().trim(),            snapCpf)
+                || !eq(binding.edtDataNascimento.getText().toString().trim(), snapDataNascimento)
+                || !eq(binding.spinnerSexo.getSelectedItem().toString(),      snapSexo)
+                || !eq(binding.edtMedicamentos.getText().toString().trim(),   snapMedicamentos)
+                || !eq(binding.edtProblemaResp.getText().toString().trim(),   snapProblemaResp)
+                || !eq(binding.edtEmergencia.getText().toString().trim(),     snapEmergencia)
+                || !eq(binding.edtCEP.getText().toString().trim(),            snapCep)
+                || !eq(binding.edtLogradouro.getText().toString().trim(),     snapLogradouro)
+                || !eq(binding.edtNumero.getText().toString().trim(),         snapNumero)
+                || !eq(binding.edtComplemento.getText().toString().trim(),    snapComplemento)
+                || !eq(binding.edtBairro.getText().toString().trim(),         snapBairro)
+                || !eq(binding.edtCidade.getText().toString().trim(),         snapCidade)
+                || !eq(binding.edtUF.getText().toString().trim(),             snapUf);
     }
 
     private boolean eq(String a, String b) { return Objects.equals(a, b); }
@@ -161,7 +239,6 @@ public class InformacoesPessoaisActivity extends BaseActivity  {
             binding.edtCPF.setTextColor(getColor(android.R.color.white));
         }
 
-        // Converte yyyy-MM-dd → DD/MM/AAAA para exibição
         String dataBanco = safe(d.getDataNascimento());
         if (dataBanco.contains("-")) {
             try {
@@ -229,8 +306,7 @@ public class InformacoesPessoaisActivity extends BaseActivity  {
             return;
         }
 
-        // Converte DD/MM/AAAA → yyyy-MM-dd para o backend
-        String dataExibida = binding.edtDataNascimento.getText().toString().trim();
+        String dataExibida  = binding.edtDataNascimento.getText().toString().trim();
         String dataFormatada = null;
         if (dataExibida.length() == 10) {
             try {
@@ -251,7 +327,7 @@ public class InformacoesPessoaisActivity extends BaseActivity  {
         request.nome                  = nullIfEmpty(binding.edtNome.getText().toString());
         request.telefone              = nullIfEmpty(binding.edtTelefone.getText().toString());
         request.sexo                  = nullIfEmpty(sexoSelecionado);
-        request.dataNascimento        = dataFormatada; // yyyy-MM-dd ou null
+        request.dataNascimento        = dataFormatada;
         request.medicamentos          = nullIfEmpty(binding.edtMedicamentos.getText().toString());
         request.contatoEmergencia     = nullIfEmpty(binding.edtEmergencia.getText().toString());
         request.problema_respiratorio = nullIfEmpty(binding.edtProblemaResp.getText().toString());
@@ -306,7 +382,6 @@ public class InformacoesPessoaisActivity extends BaseActivity  {
         });
     }
 
-    // --------------------------------------------------------- CEP
     private void buscarCep(String cep) {
         ApiViaCep.getService().buscarCep(cep).enqueue(new Callback<ViaCepResponse>() {
             @Override
@@ -350,7 +425,6 @@ public class InformacoesPessoaisActivity extends BaseActivity  {
         binding.edtComplemento.setText("");
     }
 
-    // --------------------------------------------------------- helpers
     private String nullIfEmpty(String s) {
         if (s == null) return null;
         String t = s.trim();

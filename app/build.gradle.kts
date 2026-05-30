@@ -1,3 +1,5 @@
+import org.gradle.kotlin.dsl.wearApp
+
 plugins {
     alias(libs.plugins.android.application)
     id("com.google.gms.google-services")
@@ -67,6 +69,7 @@ dependencies {
     implementation("com.squareup.okhttp3:logging-interceptor:4.11.0")
     implementation("com.google.android.gms:play-services-location:21.0.1")
     implementation("androidx.exifinterface:exifinterface:1.3.7")
+    implementation("androidx.core:core-splashscreen:1.0.1")
 
     // Room
     implementation("androidx.room:room-runtime:2.6.1")
@@ -77,5 +80,13 @@ dependencies {
 
     implementation(platform("com.google.firebase:firebase-bom:34.12.0"))
     implementation("com.google.firebase:firebase-analytics")
+
+    // Wear OS Data Layer (lado do phone)
+    implementation ("com.google.android.gms:play-services-wearable:18.1.0")
+
+    implementation("com.facebook.shimmer:shimmer:0.5.0")
+
+    // Declara que o módulo :wear é o companion
+    wearApp(project(":wear"))
 
 }

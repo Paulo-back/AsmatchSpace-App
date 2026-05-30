@@ -1,0 +1,161 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.facebook.shimmer.ShimmerFrameLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/shimmer_layout"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:padding="16dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <!-- Card "Hoje" -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@drawable/shape_skeleton"
+            android:orientation="vertical"
+            android:padding="16dp">
+
+            <!-- Header: "Hoje" + data -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+                <View
+                    android:layout_width="50dp"
+                    android:layout_height="16dp"
+                    android:background="@drawable/shape_skeleton"/>
+                <View
+                    android:layout_width="0dp"
+                    android:layout_height="0dp"
+                    android:layout_weight="1"/>
+                <View
+                    android:layout_width="100dp"
+                    android:layout_height="14dp"
+                    android:background="@drawable/shape_skeleton"/>
+            </LinearLayout>
+
+            <!-- Divisor -->
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:layout_marginTop="10dp"
+                android:layout_marginBottom="12dp"
+                android:background="@drawable/shape_skeleton"/>
+
+            <!-- Item anotação 1 -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="56dp"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:background="@drawable/shape_skeleton"
+                android:layout_marginBottom="8dp"
+                android:paddingStart="12dp"
+                android:paddingEnd="12dp">
+                <View
+                    android:layout_width="36dp"
+                    android:layout_height="12dp"
+                    android:background="@drawable/shape_skeleton"/>
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:orientation="vertical"
+                    android:layout_marginStart="12dp">
+                    <View
+                        android:layout_width="120dp"
+                        android:layout_height="11dp"
+                        android:background="@drawable/shape_skeleton"
+                        android:layout_marginBottom="6dp"/>
+                    <View
+                        android:layout_width="180dp"
+                        android:layout_height="10dp"
+                        android:background="@drawable/shape_skeleton"/>
+                </LinearLayout>
+            </LinearLayout>
+
+            <!-- Item anotação 2 -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="56dp"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:background="@drawable/shape_skeleton"
+                android:paddingStart="12dp"
+                android:paddingEnd="12dp">
+                <View
+                    android:layout_width="36dp"
+                    android:layout_height="12dp"
+                    android:background="@drawable/shape_skeleton"/>
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:orientation="vertical"
+                    android:layout_marginStart="12dp">
+                    <View
+                        android:layout_width="100dp"
+                        android:layout_height="11dp"
+                        android:background="@drawable/shape_skeleton"
+                        android:layout_marginBottom="6dp"/>
+                    <View
+                        android:layout_width="150dp"
+                        android:layout_height="10dp"
+                        android:background="@drawable/shape_skeleton"/>
+                </LinearLayout>
+            </LinearLayout>
+
+        </LinearLayout>
+
+        <!-- Card "Anteriores" -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@drawable/shape_skeleton"
+            android:orientation="vertical"
+            android:padding="16dp"
+            android:layout_marginTop="16dp">
+
+            <!-- Header "Anteriores" -->
+            <View
+                android:layout_width="100dp"
+                android:layout_height="16dp"
+                android:background="@drawable/shape_skeleton"/>
+
+            <!-- Divisor -->
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:layout_marginTop="10dp"
+                android:layout_marginBottom="12dp"
+                android:background="@drawable/shape_skeleton"/>
+
+            <!-- Data anterior 1 -->
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="44dp"
+                android:background="@drawable/shape_skeleton"
+                android:layout_marginBottom="8dp"/>
+
+            <!-- Data anterior 2 -->
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="44dp"
+                android:background="@drawable/shape_skeleton"
+                android:layout_marginBottom="8dp"/>
+
+            <!-- Data anterior 3 -->
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="44dp"
+                android:background="@drawable/shape_skeleton"/>
+
+        </LinearLayout>
+
+    </LinearLayout>
+
+</com.facebook.shimmer.ShimmerFrameLayout>

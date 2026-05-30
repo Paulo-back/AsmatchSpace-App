@@ -14,7 +14,6 @@
     <color name="turquoise_light">#FF4FC3F7</color>
     <color name="green_success">#4CAF50</color>
     <color name="red_danger">#FFFF5252</color>
-
     <!-- Cores para o painel de resumo -->
     <color name="blue_dark">#0A84FF</color>
     <color name="red_dark">#FF453A</color>

@@ -162,14 +162,6 @@ public class PerfilActivity extends Fragment {
         });
 
         binding.btnDiarioSintomas.setOnClickListener(v -> {
-
-            requireActivity().getSupportFragmentManager()
-                    .beginTransaction()
-                    .replace(R.id.frameLayout, new DiarioSintomasFragment())
-                    .addToBackStack(null)
-                    .commit();
-
-
             ((MainActivity) requireActivity()).binding.bottomNavigationView
                     .setSelectedItemId(R.id.navigation_diario);
         });

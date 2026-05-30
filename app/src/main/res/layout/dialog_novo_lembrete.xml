@@ -1,164 +1,376 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:orientation="vertical"
-    android:padding="20dp"
-    android:background="@color/blue_navy">
+    android:fillViewport="true">
 
-    <TextView
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Novo Lembrete"
-        android:textColor="@color/white"
-        android:textSize="18sp"
-        android:textStyle="bold"
-        android:layout_marginBottom="20dp" />
+        android:orientation="vertical"
+        android:padding="20dp"
+        android:background="@color/blue_navy">
 
-    <!-- TÍTULO -->
-    <TextView
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="TÍTULO"
-        android:textColor="@color/label_color"
-        android:textSize="11sp"
-        android:textStyle="bold"
-        android:letterSpacing="0.08"
-        android:layout_marginBottom="6dp" />
-
-    <androidx.cardview.widget.CardView
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginBottom="20dp"
-        app:cardCornerRadius="10dp"
-        app:cardElevation="0dp"
-        app:cardBackgroundColor="@color/blue_card">
-
-        <EditText
-            android:id="@+id/edit_text_titulo_lembrete"
+        <!-- TÍTULO -->
+        <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="Ex: Usar inalador"
-            android:textColor="@color/white"
-            android:textColorHint="@color/label_color"
-            android:textSize="14sp"
-            android:background="@null"
-            android:padding="14dp" />
+            android:text="TÍTULO"
+            android:textColor="@color/label_color"
+            android:textSize="11sp"
+            android:textStyle="bold"
+            android:letterSpacing="0.08"
+            android:layout_marginBottom="6dp" />
 
-    </androidx.cardview.widget.CardView>
-
-    <!-- HORÁRIO -->
-    <TextView
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="HORÁRIO"
-        android:textColor="@color/label_color"
-        android:textSize="11sp"
-        android:textStyle="bold"
-        android:letterSpacing="0.08"
-        android:layout_marginBottom="6dp" />
-
-    <androidx.cardview.widget.CardView
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginBottom="20dp"
-        app:cardCornerRadius="10dp"
-        app:cardElevation="0dp"
-        app:cardBackgroundColor="@color/blue_card">
-
-        <LinearLayout
-            android:id="@+id/btn_selecionar_horario"
+        <androidx.cardview.widget.CardView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:gravity="center_vertical"
-            android:padding="14dp"
-            android:clickable="true"
-            android:focusable="true"
-            android:background="?attr/selectableItemBackground">
+            android:layout_marginBottom="20dp"
+            app:cardCornerRadius="10dp"
+            app:cardElevation="0dp"
+            app:cardBackgroundColor="@color/blue_card">
 
-            <ImageView
-                android:layout_width="16dp"
-                android:layout_height="16dp"
-                android:src="@drawable/ic_schedule"
-                app:tint="@color/turquoise_light"
-                android:layout_marginEnd="10dp" />
-
-            <TextView
-                android:id="@+id/text_horario_selecionado"
-                android:layout_width="0dp"
+            <EditText
+                android:id="@+id/edit_text_titulo_lembrete"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:text="Toque para selecionar"
-                android:textColor="@color/label_color"
-                android:textSize="14sp" />
+                android:hint="Ex: Usar inalador"
+                android:textColor="@color/white"
+                android:textColorHint="@color/label_color"
+                android:textSize="14sp"
+                android:background="@null"
+                android:padding="14dp" />
 
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="›"
-                android:textColor="@color/turquoise_light"
-                android:textSize="18sp" />
+        </androidx.cardview.widget.CardView>
 
-        </LinearLayout>
-
-    </androidx.cardview.widget.CardView>
-
-    <!-- DATA -->
-    <TextView
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="DATA"
-        android:textColor="@color/label_color"
-        android:textSize="11sp"
-        android:textStyle="bold"
-        android:letterSpacing="0.08"
-        android:layout_marginBottom="6dp" />
-
-    <androidx.cardview.widget.CardView
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        app:cardCornerRadius="10dp"
-        app:cardElevation="0dp"
-        app:cardBackgroundColor="@color/blue_card">
-
-        <LinearLayout
-            android:id="@+id/btn_selecionar_data"
+        <!-- HORÁRIO -->
+        <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:gravity="center_vertical"
-            android:padding="14dp"
-            android:clickable="true"
-            android:focusable="true"
-            android:background="?attr/selectableItemBackground">
+            android:text="HORÁRIO"
+            android:textColor="@color/label_color"
+            android:textSize="11sp"
+            android:textStyle="bold"
+            android:letterSpacing="0.08"
+            android:layout_marginBottom="6dp" />
 
-            <ImageView
-                android:layout_width="16dp"
-                android:layout_height="16dp"
-                android:src="@drawable/ic_calendar"
-                app:tint="@color/turquoise_light"
-                android:layout_marginEnd="10dp" />
+        <androidx.cardview.widget.CardView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="20dp"
+            app:cardCornerRadius="10dp"
+            app:cardElevation="0dp"
+            app:cardBackgroundColor="@color/blue_card">
 
-            <TextView
-                android:id="@+id/text_data_selecionada"
-                android:layout_width="0dp"
+            <LinearLayout
+                android:id="@+id/btn_selecionar_horario"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:text="Toque para selecionar"
-                android:textColor="@color/label_color"
-                android:textSize="14sp" />
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:padding="14dp"
+                android:clickable="true"
+                android:focusable="true"
+                android:background="?attr/selectableItemBackground">
 
-            <TextView
-                android:layout_width="wrap_content"
+                <ImageView
+                    android:layout_width="16dp"
+                    android:layout_height="16dp"
+                    android:src="@drawable/ic_schedule"
+                    app:tint="@color/turquoise_light"
+                    android:layout_marginEnd="10dp" />
+
+                <TextView
+                    android:id="@+id/text_horario_selecionado"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="Toque para selecionar"
+                    android:textColor="@color/label_color"
+                    android:textSize="14sp" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="›"
+                    android:textColor="@color/turquoise_light"
+                    android:textSize="18sp" />
+
+            </LinearLayout>
+
+        </androidx.cardview.widget.CardView>
+
+        <!-- DATA INÍCIO -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="DATA INÍCIO"
+            android:textColor="@color/label_color"
+            android:textSize="11sp"
+            android:textStyle="bold"
+            android:letterSpacing="0.08"
+            android:layout_marginBottom="6dp" />
+
+        <androidx.cardview.widget.CardView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="20dp"
+            app:cardCornerRadius="10dp"
+            app:cardElevation="0dp"
+            app:cardBackgroundColor="@color/blue_card">
+
+            <LinearLayout
+                android:id="@+id/btn_selecionar_data"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="›"
-                android:textColor="@color/turquoise_light"
-                android:textSize="18sp" />
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:padding="14dp"
+                android:clickable="true"
+                android:focusable="true"
+                android:background="?attr/selectableItemBackground">
 
-        </LinearLayout>
+                <ImageView
+                    android:layout_width="16dp"
+                    android:layout_height="16dp"
+                    android:src="@drawable/ic_calendar"
+                    app:tint="@color/turquoise_light"
+                    android:layout_marginEnd="10dp" />
 
-    </androidx.cardview.widget.CardView>
+                <TextView
+                    android:id="@+id/text_data_selecionada"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="Toque para selecionar"
+                    android:textColor="@color/label_color"
+                    android:textSize="14sp" />
 
-</LinearLayout>
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="›"
+                    android:textColor="@color/turquoise_light"
+                    android:textSize="18sp" />
+
+            </LinearLayout>
+
+        </androidx.cardview.widget.CardView>
+
+        <!-- RECORRÊNCIA -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="RECORRÊNCIA"
+            android:textColor="@color/label_color"
+            android:textSize="11sp"
+            android:textStyle="bold"
+            android:letterSpacing="0.08"
+            android:layout_marginBottom="6dp" />
+
+        <androidx.cardview.widget.CardView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="12dp"
+            app:cardCornerRadius="10dp"
+            app:cardElevation="0dp"
+            app:cardBackgroundColor="@color/blue_card">
+
+            <RadioGroup
+                android:id="@+id/radio_recorrencia"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="12dp">
+
+                <RadioButton
+                    android:id="@+id/radio_nenhuma"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Única vez"
+                    android:textColor="@color/white"
+                    android:textSize="14sp"
+                    android:buttonTint="@color/turquoise_light"
+                    android:paddingStart="8dp"
+                    android:checked="true" />
+
+                <RadioButton
+                    android:id="@+id/radio_diaria"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Diária"
+                    android:textColor="@color/white"
+                    android:textSize="14sp"
+                    android:buttonTint="@color/turquoise_light"
+                    android:paddingStart="8dp"
+                    android:layout_marginTop="4dp" />
+
+                <RadioButton
+                    android:id="@+id/radio_semanal"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Semanal"
+                    android:textColor="@color/white"
+                    android:textSize="14sp"
+                    android:buttonTint="@color/turquoise_light"
+                    android:paddingStart="8dp"
+                    android:layout_marginTop="4dp" />
+
+            </RadioGroup>
+
+        </androidx.cardview.widget.CardView>
+
+        <!-- DIAS DA SEMANA -->
+        <androidx.cardview.widget.CardView
+            android:id="@+id/card_dias_semana"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="12dp"
+            android:visibility="gone"
+            app:cardCornerRadius="10dp"
+            app:cardElevation="0dp"
+            app:cardBackgroundColor="@color/blue_card">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center"
+                android:paddingStart="8dp"
+                android:paddingEnd="8dp"
+                android:paddingTop="12dp"
+                android:paddingBottom="12dp">
+
+                <!-- Cada dia: label + checkbox empilhados -->
+                <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content"
+                    android:layout_weight="1" android:orientation="vertical" android:gravity="center">
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                        android:text="Seg" android:textColor="@color/label_color" android:textSize="10sp"/>
+                    <CheckBox android:id="@+id/cb_seg" android:layout_width="wrap_content"
+                        android:layout_height="wrap_content" android:buttonTint="@color/turquoise_light"
+                        android:layout_gravity="center"/>
+                </LinearLayout>
+
+                <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content"
+                    android:layout_weight="1" android:orientation="vertical" android:gravity="center">
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                        android:text="Ter" android:textColor="@color/label_color" android:textSize="10sp"/>
+                    <CheckBox android:id="@+id/cb_ter" android:layout_width="wrap_content"
+                        android:layout_height="wrap_content" android:buttonTint="@color/turquoise_light"
+                        android:layout_gravity="center"/>
+                </LinearLayout>
+
+                <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content"
+                    android:layout_weight="1" android:orientation="vertical" android:gravity="center">
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                        android:text="Qua" android:textColor="@color/label_color" android:textSize="10sp"/>
+                    <CheckBox android:id="@+id/cb_qua" android:layout_width="wrap_content"
+                        android:layout_height="wrap_content" android:buttonTint="@color/turquoise_light"
+                        android:layout_gravity="center"/>
+                </LinearLayout>
+
+                <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content"
+                    android:layout_weight="1" android:orientation="vertical" android:gravity="center">
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                        android:text="Qui" android:textColor="@color/label_color" android:textSize="10sp"/>
+                    <CheckBox android:id="@+id/cb_qui" android:layout_width="wrap_content"
+                        android:layout_height="wrap_content" android:buttonTint="@color/turquoise_light"
+                        android:layout_gravity="center"/>
+                </LinearLayout>
+
+                <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content"
+                    android:layout_weight="1" android:orientation="vertical" android:gravity="center">
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                        android:text="Sex" android:textColor="@color/label_color" android:textSize="10sp"/>
+                    <CheckBox android:id="@+id/cb_sex" android:layout_width="wrap_content"
+                        android:layout_height="wrap_content" android:buttonTint="@color/turquoise_light"
+                        android:layout_gravity="center"/>
+                </LinearLayout>
+
+                <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content"
+                    android:layout_weight="1" android:orientation="vertical" android:gravity="center">
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                        android:text="Sáb" android:textColor="@color/label_color" android:textSize="10sp"/>
+                    <CheckBox android:id="@+id/cb_sab" android:layout_width="wrap_content"
+                        android:layout_height="wrap_content" android:buttonTint="@color/turquoise_light"
+                        android:layout_gravity="center"/>
+                </LinearLayout>
+
+                <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content"
+                    android:layout_weight="1" android:orientation="vertical" android:gravity="center">
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                        android:text="Dom" android:textColor="@color/label_color" android:textSize="10sp"/>
+                    <CheckBox android:id="@+id/cb_dom" android:layout_width="wrap_content"
+                        android:layout_height="wrap_content" android:buttonTint="@color/turquoise_light"
+                        android:layout_gravity="center"/>
+                </LinearLayout>
+
+            </LinearLayout>
+
+        </androidx.cardview.widget.CardView>
+
+        <!-- DATA FIM -->
+        <TextView
+            android:id="@+id/label_data_fim"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="DATA FIM (OPCIONAL)"
+            android:textColor="@color/label_color"
+            android:textSize="11sp"
+            android:textStyle="bold"
+            android:letterSpacing="0.08"
+            android:layout_marginBottom="6dp"
+            android:visibility="gone" />
+
+        <androidx.cardview.widget.CardView
+            android:id="@+id/card_data_fim"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="8dp"
+            android:visibility="gone"
+            app:cardCornerRadius="10dp"
+            app:cardElevation="0dp"
+            app:cardBackgroundColor="@color/blue_card">
+
+            <LinearLayout
+                android:id="@+id/btn_selecionar_data_fim"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:padding="14dp"
+                android:clickable="true"
+                android:focusable="true"
+                android:background="?attr/selectableItemBackground">
+
+                <ImageView
+                    android:layout_width="16dp"
+                    android:layout_height="16dp"
+                    android:src="@drawable/ic_calendar"
+                    app:tint="@color/turquoise_light"
+                    android:layout_marginEnd="10dp" />
+
+                <TextView
+                    android:id="@+id/text_data_fim_selecionada"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="Sem data de encerramento"
+                    android:textColor="@color/label_color"
+                    android:textSize="14sp" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="›"
+                    android:textColor="@color/turquoise_light"
+                    android:textSize="18sp" />
+
+            </LinearLayout>
+
+        </androidx.cardview.widget.CardView>
+
+    </LinearLayout>
+
+</ScrollView>

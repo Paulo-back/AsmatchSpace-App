@@ -6,6 +6,7 @@
     android:layout_height="match_parent"
     android:background="#0D1B3E">
 
+    <!-- Header fixo — sempre visível -->
     <LinearLayout
         android:id="@+id/header"
         android:layout_width="match_parent"
@@ -33,9 +34,7 @@
             android:textSize="22sp"
             android:textStyle="bold"
             android:letterSpacing="0.05"
-            android:layout_marginTop="12dp"
-
-            />
+            android:layout_marginTop="12dp"/>
 
         <TextView
             android:id="@+id/txtSubtitulo"
@@ -48,13 +47,35 @@
 
     </LinearLayout>
 
+    <!-- Skeleton — visível enquanto os dados carregam -->
     <ScrollView
+        android:id="@+id/scroll_skeleton"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_marginTop="220dp"
         android:fillViewport="true"
         android:clipToPadding="false"
         android:paddingBottom="100dp">
+
+        <ViewStub
+            android:id="@+id/skeleton_stub"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:inflatedId="@+id/skeleton_container"
+            android:layout="@layout/layout_skeleton_informacoes_pessoais"/>
+
+    </ScrollView>
+
+    <!-- Formulário real — começa GONE -->
+    <ScrollView
+        android:id="@+id/scroll_formulario"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_marginTop="220dp"
+        android:fillViewport="true"
+        android:clipToPadding="false"
+        android:paddingBottom="100dp"
+        android:visibility="gone">
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -100,23 +121,8 @@
                     <View android:layout_width="match_parent" android:layout_height="1dp" android:background="#1E3A5F" android:layout_marginBottom="16dp"/>
 
                     <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="CPF" android:textColor="#8EADD4" android:textSize="11sp" android:textStyle="bold" android:letterSpacing="0.08" />
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="48dp"
-                        android:orientation="horizontal"
-                        android:gravity="center_vertical">
-
-                        <EditText
-                            android:id="@+id/edtCPF"
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_weight="1"
-                            android:textColor="#FFFFFF"
-                            android:textSize="15sp"
-                            android:hint="CPF (opcional)"
-                            android:inputType="number"
-                            android:background="@android:color/transparent" />
-
+                    <LinearLayout android:layout_width="match_parent" android:layout_height="48dp" android:orientation="horizontal" android:gravity="center_vertical">
+                        <EditText android:id="@+id/edtCPF" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:textColor="#FFFFFF" android:textSize="15sp" android:hint="CPF (opcional)" android:inputType="number" android:background="@android:color/transparent" />
                     </LinearLayout>
                     <View android:layout_width="match_parent" android:layout_height="1dp" android:background="#1E3A5F" android:layout_marginBottom="16dp"/>
 
@@ -127,49 +133,13 @@
                     <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:weightSum="2">
                         <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical" android:paddingRight="10dp">
                             <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Sexo" android:textColor="#8EADD4" android:textSize="11sp" android:textStyle="bold" android:letterSpacing="0.08" />
-                            <Spinner
-                                android:id="@+id/spinnerSexo"
-                                android:layout_width="match_parent"
-                                android:layout_height="48dp"
-                                android:layout_marginTop="4dp"
-                                android:background="@drawable/text_box"
-                                android:entries="@array/spinner_sexo"
-                                android:padding="10dp" />
+                            <Spinner android:id="@+id/spinnerSexo" android:layout_width="match_parent" android:layout_height="48dp" android:layout_marginTop="4dp" android:background="@drawable/text_box" android:entries="@array/spinner_sexo" android:padding="10dp" />
                             <View android:layout_width="match_parent" android:layout_height="1dp" android:background="#1E3A5F"/>
                         </LinearLayout>
-                        <LinearLayout
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_weight="1"
-                            android:orientation="vertical"
-                            android:paddingLeft="10dp">
-
-                            <TextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="Data de Nascimento"
-                                android:textColor="#8EADD4"
-                                android:textSize="11sp"
-                                android:textStyle="bold"
-                                android:letterSpacing="0.08" />
-
-                            <EditText
-                                android:id="@+id/edtDataNascimento"
-                                android:layout_width="match_parent"
-                                android:layout_height="48dp"
-                                android:textColor="#FFFFFF"
-                                android:textSize="16sp"
-                                android:background="@null"
-                                android:paddingTop="8dp"
-                                android:paddingBottom="8dp"
-                                android:hint="DD/MM/AAAA"
-                                android:inputType="number"
-                                android:maxLength="10" />
-
-                            <View
-                                android:layout_width="match_parent"
-                                android:layout_height="1dp"
-                                android:background="#1E3A5F" />
+                        <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical" android:paddingLeft="10dp">
+                            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Data de Nascimento" android:textColor="#8EADD4" android:textSize="11sp" android:textStyle="bold" android:letterSpacing="0.08" />
+                            <EditText android:id="@+id/edtDataNascimento" android:layout_width="match_parent" android:layout_height="48dp" android:textColor="#FFFFFF" android:textSize="16sp" android:background="@null" android:paddingTop="8dp" android:paddingBottom="8dp" android:hint="DD/MM/AAAA" android:inputType="number" android:maxLength="10" />
+                            <View android:layout_width="match_parent" android:layout_height="1dp" android:background="#1E3A5F"/>
                         </LinearLayout>
                     </LinearLayout>
 
@@ -187,14 +157,11 @@
                 app:cardBackgroundColor="#162040">
 
                 <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:padding="20dp">
-
                     <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Medicamentos" android:textColor="#8EADD4" android:textSize="11sp" android:textStyle="bold" android:letterSpacing="0.08" />
                     <EditText android:id="@+id/edtMedicamentos" android:layout_width="match_parent" android:layout_height="wrap_content" android:minHeight="48dp" android:textColor="#FFFFFF" android:textSize="15sp" android:background="@null" android:paddingTop="8dp" android:paddingBottom="8dp" android:hint="Ex: Seretide, Aerolin..." android:inputType="textMultiLine" android:maxLines="3" />
                     <View android:layout_width="match_parent" android:layout_height="1dp" android:background="#1E3A5F" android:layout_marginBottom="16dp"/>
-
                     <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Problema respiratório" android:textColor="#8EADD4" android:textSize="11sp" android:textStyle="bold" android:letterSpacing="0.08" />
                     <EditText android:id="@+id/edtProblemaResp" android:layout_width="match_parent" android:layout_height="48dp" android:textColor="#FFFFFF" android:textSize="16sp" android:background="@null" android:paddingTop="8dp" android:paddingBottom="8dp" android:hint="Ex: Asma severa ..." android:inputType="textMultiLine" />
-
                     <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Contato de Emergência" android:textColor="#8EADD4" android:textSize="11sp" android:textStyle="bold" android:letterSpacing="0.08" />
                     <EditText android:id="@+id/edtEmergencia" android:layout_width="match_parent" android:layout_height="48dp" android:textColor="#FFFFFF" android:textSize="16sp" android:background="@null" android:paddingTop="8dp" android:paddingBottom="8dp" android:hint="(00) 00000-0000" android:inputType="phone" />
                 </LinearLayout>
@@ -211,11 +178,9 @@
                 app:cardBackgroundColor="#162040">
 
                 <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:padding="20dp">
-
                     <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="CEP*" android:textColor="#8EADD4" android:textSize="11sp" android:textStyle="bold" android:letterSpacing="0.08" />
                     <EditText android:id="@+id/edtCEP" android:layout_width="match_parent" android:layout_height="48dp" android:textColor="#FFFFFF" android:textSize="16sp" android:background="@null" android:paddingTop="8dp" android:paddingBottom="8dp" android:hint="00000-000" android:inputType="number" />
                     <View android:layout_width="match_parent" android:layout_height="1dp" android:background="#1E3A5F" android:layout_marginBottom="16dp"/>
-
                     <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:weightSum="3">
                         <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="2" android:orientation="vertical" android:paddingRight="8dp">
                             <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Logradouro*" android:textColor="#8EADD4" android:textSize="11sp" android:textStyle="bold" android:letterSpacing="0.08" />
@@ -229,15 +194,12 @@
                         </LinearLayout>
                     </LinearLayout>
                     <View android:layout_width="match_parent" android:layout_height="8dp"/>
-
                     <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Complemento" android:textColor="#8EADD4" android:textSize="11sp" android:textStyle="bold" android:letterSpacing="0.08" />
                     <EditText android:id="@+id/edtComplemento" android:layout_width="match_parent" android:layout_height="48dp" android:textColor="#FFFFFF" android:textSize="16sp" android:background="@null" android:paddingTop="8dp" android:paddingBottom="8dp" android:hint="Apto, Bloco..." />
                     <View android:layout_width="match_parent" android:layout_height="1dp" android:background="#1E3A5F" android:layout_marginBottom="16dp"/>
-
                     <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Bairro*" android:textColor="#8EADD4" android:textSize="11sp" android:textStyle="bold" android:letterSpacing="0.08" />
                     <EditText android:id="@+id/edtBairro" android:layout_width="match_parent" android:layout_height="48dp" android:textColor="#FFFFFF" android:textSize="16sp" android:background="@null" android:paddingTop="8dp" android:paddingBottom="8dp" android:hint="Bairro" />
                     <View android:layout_width="match_parent" android:layout_height="1dp" android:background="#1E3A5F" android:layout_marginBottom="16dp"/>
-
                     <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:weightSum="3">
                         <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="2" android:orientation="vertical" android:paddingRight="8dp">
                             <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Cidade*" android:textColor="#8EADD4" android:textSize="11sp" android:textStyle="bold" android:letterSpacing="0.08" />
@@ -250,13 +212,13 @@
                             <View android:layout_width="match_parent" android:layout_height="1dp" android:background="#1E3A5F"/>
                         </LinearLayout>
                     </LinearLayout>
-
                 </LinearLayout>
             </androidx.cardview.widget.CardView>
 
         </LinearLayout>
     </ScrollView>
 
+    <!-- Footer de botões — sempre visível -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"

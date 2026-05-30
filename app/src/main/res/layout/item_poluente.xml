@@ -45,15 +45,19 @@
         <!-- Valor com melhor formatação -->
         <TextView
             android:id="@+id/poluente_valor"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="15 µg/m³"
+            android:layout_width="match_parent"
+            android:layout_height="36dp"
+            android:text="26.12 pg/m³"
             android:textColor="@color/white"
-            android:textSize="18sp"
             android:textStyle="bold"
+            android:textAlignment="center"
+            android:gravity="center"
             android:maxLines="1"
-            android:singleLine="true"
-            android:ellipsize="none"/>
+            android:autoSizeTextType="uniform"
+            android:autoSizeMinTextSize="10sp"
+            android:autoSizeMaxTextSize="20sp"
+            android:autoSizeStepGranularity="1sp"
+            android:includeFontPadding="false"/>
 
         <!-- Status -->
         <TextView

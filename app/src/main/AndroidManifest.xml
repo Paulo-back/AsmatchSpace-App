@@ -10,7 +10,11 @@
         android:maxSdkVersion="28" />
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"
         android:maxSdkVersion="32" />
+
+
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
+    <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
 
 
 
@@ -22,12 +26,29 @@
         android:fullBackupContent="@xml/backup_rules"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
-        android:roundIcon="@mipmap/ic_launcher_round"
+        android:roundIcon="@mipmap/ic_launcher"
         android:supportsRtl="true"
         android:theme="@style/Theme.ProjetoAsthmaSpace"
         android:usesCleartextTraffic="true">
 
-        <receiver android:name=".Data.worker.LembreteReceiver" />
+        <!-- Qualidade do ar -->
+        <receiver
+            android:name=".Data.worker.QualidadeArReceiver"
+            android:exported="false" />
+
+        <!-- Lembretes -->
+        <receiver
+            android:name=".Data.worker.LembreteReceiver"
+            android:exported="false" />
+
+        <!-- Reboot -->
+        <receiver
+            android:name=".Data.worker.BootReceiver"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+            </intent-filter>
+        </receiver>
 
 
 
@@ -37,7 +58,8 @@
         <!--Vai ser a activity principal, porem agora para testes nao -->
         <activity
             android:name=".Presentation.ActivityView.LoginActivity"
-            android:exported="true">
+            android:exported="true"
+            android:theme="@style/Theme.ProjetoAsthmaSpace.SplashScreen">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />

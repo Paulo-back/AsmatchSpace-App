@@ -1,5 +1,5 @@
 package br.fmu.projetoasthmaspace.Core.Domain.Lembretes;
-
+//PODE SER DELETADA
 public class LembreteResponse {
     public Long id;
     public String titulo;

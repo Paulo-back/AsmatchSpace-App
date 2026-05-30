@@ -6,7 +6,6 @@
     android:layout_height="match_parent"
     tools:context=".Presentation.ActivityView.TarefasActivity">
 
-    <!-- Fundo azul -->
     <ImageView
         android:id="@+id/corFundo"
         android:layout_width="0dp"
@@ -17,7 +16,6 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"/>
 
-    <!-- Imagem com baixa opacidade -->
     <ImageView
         android:id="@+id/imgFundo"
         android:layout_width="0dp"
@@ -30,12 +28,24 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"/>
 
-    <!-- CONTEÚDO SCROLLÁVEL -->
+    <!-- Skeleton — visível enquanto carrega -->
+    <ViewStub
+        android:id="@+id/skeleton_stub"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:inflatedId="@+id/skeleton_container"
+        android:layout="@layout/layout_skeleton_tarefas"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"/>
+
+    <!-- Conteúdo real — começa GONE -->
     <androidx.core.widget.NestedScrollView
         android:id="@+id/scroll_tarefas"
         android:layout_width="0dp"
         android:layout_height="0dp"
         android:fillViewport="true"
+        android:visibility="gone"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
@@ -47,7 +57,6 @@
             android:orientation="vertical"
             android:padding="16dp">
 
-            <!-- Título -->
             <TextView
                 android:id="@+id/tarefas_title"
                 android:layout_width="wrap_content"
@@ -58,7 +67,6 @@
                 android:textStyle="bold"
                 android:layout_marginTop="12dp"/>
 
-            <!-- Contador -->
             <TextView
                 android:id="@+id/contador_tarefas"
                 android:layout_width="wrap_content"
@@ -68,7 +76,6 @@
                 android:textSize="16sp"
                 android:layout_marginTop="8dp"/>
 
-            <!-- Lista de pendentes -->
             <androidx.recyclerview.widget.RecyclerView
                 android:id="@+id/recycler_tarefas"
                 android:layout_width="match_parent"
@@ -76,7 +83,6 @@
                 android:nestedScrollingEnabled="false"
                 android:layout_marginTop="16dp"/>
 
-            <!-- Título Concluídas -->
             <TextView
                 android:id="@+id/titulo_concluidas"
                 android:layout_width="wrap_content"
@@ -88,7 +94,6 @@
                 android:layout_marginTop="24dp"
                 android:visibility="gone"/>
 
-            <!-- Container das concluídas -->
             <LinearLayout
                 android:id="@+id/container_concluidas"
                 android:layout_width="match_parent"

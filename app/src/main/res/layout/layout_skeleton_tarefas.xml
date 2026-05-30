@@ -1,0 +1,114 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.facebook.shimmer.ShimmerFrameLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/shimmer_layout"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="16dp">
+
+        <!-- Título "Tarefas do Dia" -->
+        <View
+            android:layout_width="160dp"
+            android:layout_height="22dp"
+            android:layout_marginTop="12dp"
+            android:background="@drawable/shape_skeleton"/>
+
+        <!-- Contador "X tarefas pendentes" -->
+        <View
+            android:layout_width="130dp"
+            android:layout_height="14dp"
+            android:layout_marginTop="12dp"
+            android:background="@drawable/shape_skeleton"/>
+
+        <!-- Item 1 -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="64dp"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:background="@drawable/shape_skeleton"
+            android:layout_marginTop="20dp"
+            android:paddingStart="14dp"
+            android:paddingEnd="14dp">
+            <View
+                android:layout_width="20dp"
+                android:layout_height="20dp"
+                android:background="@drawable/shape_skeleton"/>
+            <View
+                android:layout_width="180dp"
+                android:layout_height="13dp"
+                android:layout_marginStart="14dp"
+                android:background="@drawable/shape_skeleton"/>
+        </LinearLayout>
+
+        <!-- Item 2 -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="64dp"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:background="@drawable/shape_skeleton"
+            android:layout_marginTop="8dp"
+            android:paddingStart="14dp"
+            android:paddingEnd="14dp">
+            <View
+                android:layout_width="20dp"
+                android:layout_height="20dp"
+                android:background="@drawable/shape_skeleton"/>
+            <View
+                android:layout_width="140dp"
+                android:layout_height="13dp"
+                android:layout_marginStart="14dp"
+                android:background="@drawable/shape_skeleton"/>
+        </LinearLayout>
+
+        <!-- Item 3 -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="64dp"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:background="@drawable/shape_skeleton"
+            android:layout_marginTop="8dp"
+            android:paddingStart="14dp"
+            android:paddingEnd="14dp">
+            <View
+                android:layout_width="20dp"
+                android:layout_height="20dp"
+                android:background="@drawable/shape_skeleton"/>
+            <View
+                android:layout_width="200dp"
+                android:layout_height="13dp"
+                android:layout_marginStart="14dp"
+                android:background="@drawable/shape_skeleton"/>
+        </LinearLayout>
+
+        <!-- Item 4 -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="64dp"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:background="@drawable/shape_skeleton"
+            android:layout_marginTop="8dp"
+            android:paddingStart="14dp"
+            android:paddingEnd="14dp">
+            <View
+                android:layout_width="20dp"
+                android:layout_height="20dp"
+                android:background="@drawable/shape_skeleton"/>
+            <View
+                android:layout_width="160dp"
+                android:layout_height="13dp"
+                android:layout_marginStart="14dp"
+                android:background="@drawable/shape_skeleton"/>
+        </LinearLayout>
+
+    </LinearLayout>
+
+</com.facebook.shimmer.ShimmerFrameLayout>

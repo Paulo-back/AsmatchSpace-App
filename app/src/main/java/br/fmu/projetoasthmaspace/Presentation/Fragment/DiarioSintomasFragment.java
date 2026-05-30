@@ -29,6 +29,8 @@ import androidx.appcompat.app.AlertDialog;
 import androidx.core.content.FileProvider;
 import androidx.fragment.app.Fragment;
 
+import com.facebook.shimmer.ShimmerFrameLayout;
+
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.OutputStream;
@@ -65,20 +67,25 @@ public class DiarioSintomasFragment extends Fragment {
     private ApiService api;
     private boolean isEditMode = false;
 
-    // Novos componentes
     private Spinner spinnerPeriodo;
     private Button btnBaixarPdf;
-    private int periodoSelecionado = 1; // Padrão: último mês
+    private int periodoSelecionado = 1;
     private boolean isDownloadingPdf = false;
 
-    // Variáveis de controle de paginação — adiciona junto com as outras no topo da classe
     private int paginaAtual = 0;
     private boolean carregando = false;
     private boolean ultimaPagina = false;
 
+    // ── Skeleton ──────────────────────────────────────────────────────────────
+    private ShimmerFrameLayout shimmerLayout;
+    private boolean skeletonInflado = false;
+    // ─────────────────────────────────────────────────────────────────────────
+
     @Nullable
     @Override
-    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
+    public View onCreateView(@NonNull LayoutInflater inflater,
+                             @Nullable ViewGroup container,
+                             @Nullable Bundle savedInstanceState) {
         binding = FragmentDiarioSintomasBinding.inflate(inflater, container, false);
         return binding.getRoot();
     }
@@ -87,7 +94,8 @@ public class DiarioSintomasFragment extends Fragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
-        SharedPreferences prefs = requireActivity().getSharedPreferences("APP", Context.MODE_PRIVATE);
+        SharedPreferences prefs = requireActivity()
+                .getSharedPreferences("APP", Context.MODE_PRIVATE);
         token = prefs.getString("TOKEN", null);
         api = ApiClient.getApiService(requireContext());
 
@@ -96,57 +104,64 @@ public class DiarioSintomasFragment extends Fragment {
         binding.fabAdicionarSintoma.setOnClickListener(v -> showNovoSintomaDialog());
         binding.fabEditarSintoma.setOnClickListener(v -> toggleEditMode());
 
-//        carregarDiario();
+        mostrarSkeleton();
         recarregarDiario();
     }
 
-    /**
-     * Inicializa o Spinner de período e o botão de PDF
-     */
+    // ── Skeleton helpers ──────────────────────────────────────────────────────
+
+    private void mostrarSkeleton() {
+        if (binding == null) return;
+        if (!skeletonInflado) {
+            shimmerLayout = (ShimmerFrameLayout) binding.skeletonStub.inflate();
+            skeletonInflado = true;
+        }
+        shimmerLayout.setVisibility(View.VISIBLE);
+        shimmerLayout.startShimmer();
+        binding.scrollDiario.setVisibility(View.GONE);
+    }
+
+    private void esconderSkeleton() {
+        if (binding == null) return;
+        if (shimmerLayout != null) {
+            shimmerLayout.stopShimmer();
+            shimmerLayout.setVisibility(View.GONE);
+        }
+        binding.scrollDiario.setVisibility(View.VISIBLE);
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+
     private void inicializarControles() {
         spinnerPeriodo = binding.getRoot().findViewById(R.id.spinner_periodo);
-        btnBaixarPdf = binding.getRoot().findViewById(R.id.btn_baixar_pdf);
-
+        btnBaixarPdf   = binding.getRoot().findViewById(R.id.btn_baixar_pdf);
         configurarSpinnerPeriodo();
         configurarBotaoPdf();
     }
 
-    /**
-     * Configura o Spinner com opções de período
-     */
     private void configurarSpinnerPeriodo() {
         String[] periodos = {
-                "Último mês",
-                "Últimos 2 meses",
-                "Últimos 3 meses",
-                "Últimos 6 meses",
-                "Últimos 9 meses",
-                "Último ano"
+                "Último mês", "Últimos 2 meses", "Últimos 3 meses",
+                "Últimos 6 meses", "Últimos 9 meses", "Último ano"
         };
 
         ArrayAdapter<String> adapter = new ArrayAdapter<String>(
-                requireContext(),
-                android.R.layout.simple_spinner_item,
-                periodos
-        ) {
+                requireContext(), android.R.layout.simple_spinner_item, periodos) {
             @Override
             public View getView(int position, View convertView, ViewGroup parent) {
-                View view = super.getView(position, convertView, parent);
-                TextView textView = view.findViewById(android.R.id.text1);
-                textView.setTextColor(getResources().getColor(R.color.white, null));
-                textView.setTextSize(14f);
-                textView.setPadding(0, 0, 0, 0);
-                return view;
+                View v = super.getView(position, convertView, parent);
+                ((TextView) v.findViewById(android.R.id.text1))
+                        .setTextColor(getResources().getColor(R.color.white, null));
+                return v;
             }
-
             @Override
             public View getDropDownView(int position, View convertView, ViewGroup parent) {
-                View view = super.getDropDownView(position, convertView, parent);
-                TextView textView = view.findViewById(android.R.id.text1);
-                textView.setTextColor(getResources().getColor(R.color.white, null));
-                textView.setBackgroundColor(android.graphics.Color.parseColor("#162040"));
-                textView.setPadding(32, 24, 32, 24);
-                return view;
+                View v = super.getDropDownView(position, convertView, parent);
+                TextView tv = v.findViewById(android.R.id.text1);
+                tv.setTextColor(getResources().getColor(R.color.white, null));
+                tv.setBackgroundColor(android.graphics.Color.parseColor("#162040"));
+                tv.setPadding(32, 24, 32, 24);
+                return v;
             }
         };
 
@@ -154,22 +169,13 @@ public class DiarioSintomasFragment extends Fragment {
         spinnerPeriodo.setAdapter(adapter);
         spinnerPeriodo.setSelection(0);
 
-
         final boolean[] primeiraSelecao = {true};
-
         spinnerPeriodo.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                if (view instanceof TextView) {
+                if (view instanceof TextView)
                     ((TextView) view).setTextColor(getResources().getColor(R.color.white, null));
-                }
-
-
-                if (primeiraSelecao[0]) {
-                    primeiraSelecao[0] = false;
-                    return;
-                }
-
+                if (primeiraSelecao[0]) { primeiraSelecao[0] = false; return; }
                 switch (position) {
                     case 0: periodoSelecionado = 1;  break;
                     case 1: periodoSelecionado = 2;  break;
@@ -180,68 +186,42 @@ public class DiarioSintomasFragment extends Fragment {
                 }
                 filtrarDiarioPorPeriodo();
             }
-
-            @Override
-            public void onNothingSelected(AdapterView<?> parent) {}
+            @Override public void onNothingSelected(AdapterView<?> parent) {}
         });
     }
 
-    /**
-     * Configura o botão de download de PDF
-     */
     private void configurarBotaoPdf() {
         btnBaixarPdf.setOnClickListener(v -> {
-            if (!isDownloadingPdf) {
-                baixarPdfDaApi();
-            }
+            if (!isDownloadingPdf) baixarPdfDaApi();
         });
     }
 
-    /**
-     * Filtra o diário com base no período selecionado
-     */
     private void filtrarDiarioPorPeriodo() {
         if (diario == null) return;
-
         Calendar calendar = Calendar.getInstance(TimeZone.getTimeZone("America/Sao_Paulo"));
         calendar.add(Calendar.MONTH, -periodoSelecionado);
         Date dataLimite = calendar.getTime();
 
-        List<DiarioResponse> diarioFiltrado = new ArrayList<>();
+        List<DiarioResponse> filtrado = new ArrayList<>();
         for (DiarioResponse d : diario) {
             Date dataAnotacao = DiarioParser.parseData(d.getData());
-            if (dataAnotacao != null && dataAnotacao.after(dataLimite)) {
-                diarioFiltrado.add(d);
-            }
+            if (dataAnotacao != null && dataAnotacao.after(dataLimite)) filtrado.add(d);
         }
-
-        atualizarTelaComDados(diarioFiltrado);
-        // Toast removido — a mudança visual do spinner já indica a seleção
+        atualizarTelaComDados(filtrado);
     }
 
-    /**
-     * Faz o download do PDF da API
-     */
     private void baixarPdfDaApi() {
         isDownloadingPdf = true;
         btnBaixarPdf.setEnabled(false);
         btnBaixarPdf.setText("Baixando...");
 
-        // Chamar API para baixar PDF
-        // Adapte o endpoint conforme sua API
         api.gerarPdfDiario(periodoSelecionado).enqueue(new Callback<ResponseBody>() {
             @Override
             public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
                 if (!isAdded()) return;
-
-                if (response.isSuccessful() && response.body() != null) {
-                    salvarPdf(response.body());
-                } else {
-                    mostrarErro("Erro ao baixar PDF: " + response.code());
-                    restaurarBotaoPdf();
-                }
+                if (response.isSuccessful() && response.body() != null) salvarPdf(response.body());
+                else { mostrarErro("Erro ao baixar PDF: " + response.code()); restaurarBotaoPdf(); }
             }
-
             @Override
             public void onFailure(Call<ResponseBody> call, Throwable t) {
                 if (!isAdded()) return;
@@ -251,39 +231,26 @@ public class DiarioSintomasFragment extends Fragment {
         });
     }
 
-    /**
-     * Salva o PDF no dispositivo
-     */
     private void salvarPdf(ResponseBody body) {
         try {
             String nomeArquivo = String.format("diario_sintomas_%dmeses_%d.pdf",
-                    periodoSelecionado,
-                    System.currentTimeMillis());
-
+                    periodoSelecionado, System.currentTimeMillis());
             Uri uriArquivo;
-
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                // Android 10+ — salva no Downloads público via MediaStore
                 ContentValues values = new ContentValues();
                 values.put(MediaStore.Downloads.DISPLAY_NAME, nomeArquivo);
                 values.put(MediaStore.Downloads.MIME_TYPE, "application/pdf");
                 values.put(MediaStore.Downloads.IS_PENDING, 1);
-
                 ContentResolver resolver = requireContext().getContentResolver();
                 uriArquivo = resolver.insert(MediaStore.Downloads.EXTERNAL_CONTENT_URI, values);
-
                 if (uriArquivo == null) throw new Exception("Falha ao criar arquivo no MediaStore");
-
                 try (OutputStream os = resolver.openOutputStream(uriArquivo)) {
                     os.write(body.bytes());
                 }
-
                 values.clear();
                 values.put(MediaStore.Downloads.IS_PENDING, 0);
                 resolver.update(uriArquivo, values, null, null);
-
             } else {
-                // Android 9 e abaixo — Downloads público direto
                 File dir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS);
                 File arquivo = new File(dir, nomeArquivo);
                 try (FileOutputStream os = new FileOutputStream(arquivo)) {
@@ -291,10 +258,8 @@ public class DiarioSintomasFragment extends Fragment {
                 }
                 uriArquivo = Uri.fromFile(arquivo);
             }
-
             Toast.makeText(getContext(), "PDF salvo em Downloads", Toast.LENGTH_LONG).show();
             abrirPdf(uriArquivo);
-
         } catch (Exception e) {
             e.printStackTrace();
             mostrarErro("Erro ao salvar PDF: " + e.getMessage());
@@ -303,7 +268,6 @@ public class DiarioSintomasFragment extends Fragment {
         }
     }
 
-    // Novo abrirPdf que recebe Uri direto
     private void abrirPdf(Uri uri) {
         try {
             Intent intent = new Intent(Intent.ACTION_VIEW);
@@ -320,37 +284,24 @@ public class DiarioSintomasFragment extends Fragment {
         }
     }
 
-    /**
-     * Abre o PDF após o download
-     */
     private void abrirPdf(File arquivo) {
         try {
-            Uri uri = FileProvider.getUriForFile(
-                    requireContext(),
-                    requireContext().getPackageName() + ".fileprovider",
-                    arquivo
-            );
-
+            Uri uri = FileProvider.getUriForFile(requireContext(),
+                    requireContext().getPackageName() + ".fileprovider", arquivo);
             Intent intent = new Intent(Intent.ACTION_VIEW);
             intent.setDataAndType(uri, "application/pdf");
             intent.setFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_ACTIVITY_NEW_TASK);
-
-            if (intent.resolveActivity(requireContext().getPackageManager()) != null) {
+            if (intent.resolveActivity(requireContext().getPackageManager()) != null)
                 startActivity(intent);
-            } else {
-                Toast.makeText(getContext(),
-                        "Nenhum aplicativo disponível para abrir PDF",
+            else
+                Toast.makeText(getContext(), "Nenhum aplicativo disponível para abrir PDF",
                         Toast.LENGTH_LONG).show();
-            }
         } catch (Exception e) {
             e.printStackTrace();
             mostrarErro("Erro ao abrir PDF: " + e.getMessage());
         }
     }
 
-    /**
-     * Restaura o estado original do botão de PDF
-     */
     private void restaurarBotaoPdf() {
         if (!isAdded()) return;
         isDownloadingPdf = false;
@@ -358,9 +309,6 @@ public class DiarioSintomasFragment extends Fragment {
         btnBaixarPdf.setText("PDF");
     }
 
-    /**
-     * Mostra mensagem de erro
-     */
     private void mostrarErro(String mensagem) {
         if (!isAdded()) return;
         Toast.makeText(getContext(), mensagem, Toast.LENGTH_LONG).show();
@@ -377,7 +325,6 @@ public class DiarioSintomasFragment extends Fragment {
         }
     }
 
-    // Substitui o carregarDiario() atual
     private void carregarDiario() {
         if (carregando || ultimaPagina) return;
         carregando = true;
@@ -386,39 +333,44 @@ public class DiarioSintomasFragment extends Fragment {
             @Override
             public void onResponse(Call<PaginaResponse<DiarioResponse>> call,
                                    Response<PaginaResponse<DiarioResponse>> response) {
-                if (!isAdded()) return;
+                if (!isAdded() || binding == null) return;
                 carregando = false;
 
                 if (response.isSuccessful() && response.body() != null) {
                     PaginaResponse<DiarioResponse> pagina = response.body();
-
                     if (diario == null) diario = new ArrayList<>();
                     diario.addAll(pagina.getContent());
-
                     ultimaPagina = pagina.isLast();
                     paginaAtual++;
 
                     filtrarDiarioPorPeriodo();
+                    esconderSkeleton(); // ← só após renderizar
                 } else {
                     Toast.makeText(getContext(), "Erro ao carregar diário", Toast.LENGTH_SHORT).show();
+                    esconderSkeleton(); // ← evita tela travada
                 }
             }
 
             @Override
             public void onFailure(Call<PaginaResponse<DiarioResponse>> call, Throwable t) {
-                if (!isAdded()) return;
+                if (!isAdded() || binding == null) return;
                 carregando = false;
                 Toast.makeText(getContext(), "Falha na conexão", Toast.LENGTH_SHORT).show();
+                esconderSkeleton(); // ← evita tela travada
             }
         });
     }
-    private void atualizarTela() {
-        atualizarTelaComDados(diario);
+
+    private void recarregarDiario() {
+        paginaAtual  = 0;
+        ultimaPagina = false;
+        carregando   = false;
+        diario       = new ArrayList<>();
+        // Mostra skeleton apenas se vier de um recarregamento com tela já visível
+        // (onViewCreated já chama mostrarSkeleton() antes de recarregarDiario())
+        carregarDiario();
     }
 
-    /**
-     * Atualiza a tela com uma lista específica de dados
-     */
     private void atualizarTelaComDados(List<DiarioResponse> dados) {
         if (dados == null || binding == null) return;
 
@@ -435,9 +387,8 @@ public class DiarioSintomasFragment extends Fragment {
             if (DiarioParser.isToday(d.getData())) {
                 hoje.add(d);
             } else {
-                if (!anteriores.containsKey(d.getData())) {
+                if (!anteriores.containsKey(d.getData()))
                     anteriores.put(d.getData(), new ArrayList<>());
-                }
                 anteriores.get(d.getData()).add(d);
             }
         }
@@ -446,7 +397,9 @@ public class DiarioSintomasFragment extends Fragment {
         exibirDatasAnteriores(anteriores);
     }
 
-    private void exibirAnotacoes(LinearLayout container, List<DiarioResponse> lista, boolean editMode) {
+    private void exibirAnotacoes(LinearLayout container,
+                                 List<DiarioResponse> lista,
+                                 boolean editMode) {
         container.removeAllViews();
         if (getContext() == null || lista == null) return;
         LayoutInflater inflater = LayoutInflater.from(getContext());
@@ -455,11 +408,12 @@ public class DiarioSintomasFragment extends Fragment {
             View itemView;
             if (editMode) {
                 itemView = inflater.inflate(R.layout.item_anotacao_diario_edit, container, false);
-                EditText editTitulo   = itemView.findViewById(R.id.edit_titulo_sintoma);
+                EditText editTitulo    = itemView.findViewById(R.id.edit_titulo_sintoma);
                 EditText editDescricao = itemView.findViewById(R.id.edit_descricao_sintoma);
                 editTitulo.setText(resp.getIntensidade());
                 editDescricao.setText(resp.getDescricao());
-                itemView.findViewById(R.id.btn_excluir_anotacao).setOnClickListener(v -> excluirAnotacao(resp.getId()));
+                itemView.findViewById(R.id.btn_excluir_anotacao)
+                        .setOnClickListener(v -> excluirAnotacao(resp.getId()));
             } else {
                 itemView = inflater.inflate(R.layout.item_anotacao_diario, container, false);
                 TextView itemHorario     = itemView.findViewById(R.id.item_horario);
@@ -475,16 +429,13 @@ public class DiarioSintomasFragment extends Fragment {
                 itemDescricao.setText(resp.getDescricao() != null ? resp.getDescricao() : "");
 
                 itemView.setOnClickListener(v -> {
-                    String horarioFormatado  = (hora != null) ? formatoHora.format(hora) : resp.getHorario();
-                    String tituloDialogo     = "Intensidade: " + resp.getIntensidade();
+                    String horarioFormatado   = hora != null ? formatoHora.format(hora) : resp.getHorario();
+                    String tituloDialogo      = "Intensidade: " + resp.getIntensidade();
                     String descricaoFormatada = (resp.getDescricao() != null && !resp.getDescricao().isEmpty())
-                            ? resp.getDescricao()
-                            : "(Nenhuma descrição fornecida)";
-                    String mensagemDialogo   = "Anotado às: " + horarioFormatado + "\n\n" + descricaoFormatada;
-
+                            ? resp.getDescricao() : "(Nenhuma descrição fornecida)";
                     new AlertDialog.Builder(getContext())
                             .setTitle(tituloDialogo)
-                            .setMessage(mensagemDialogo)
+                            .setMessage("Anotado às: " + horarioFormatado + "\n\n" + descricaoFormatada)
                             .setPositiveButton("Fechar", null)
                             .show();
                 });
@@ -494,103 +445,90 @@ public class DiarioSintomasFragment extends Fragment {
         }
     }
 
-    // Método para resetar e recarregar do zero — chama esse no lugar de carregarDiario()
-// nos casos de registrarSintoma, excluirAnotacao e exitEditMode
-    private void recarregarDiario() {
-        paginaAtual = 0;
-        ultimaPagina = false;
-        carregando = false;
-        diario = new ArrayList<>();
-        carregarDiario();
-    }
-
     private void exibirDatasAnteriores(Map<String, List<DiarioResponse>> map) {
         if (binding == null) return;
         binding.containerAnotacoesAnteriores.removeAllViews();
         LayoutInflater inflater = LayoutInflater.from(getContext());
-        SimpleDateFormat dfDisplay = new SimpleDateFormat("dd 'de' MMMM 'de' yyyy", Locale.getDefault());
+        SimpleDateFormat dfDisplay =
+                new SimpleDateFormat("dd 'de' MMMM 'de' yyyy", Locale.getDefault());
 
         for (Map.Entry<String, List<DiarioResponse>> entry : map.entrySet()) {
             final String dataString = entry.getKey();
             final List<DiarioResponse> lista = entry.getValue();
             Date dia = DiarioParser.parseData(dataString);
 
-            View item = inflater.inflate(R.layout.item_data_anterior, binding.containerAnotacoesAnteriores, false);
+            View item = inflater.inflate(R.layout.item_data_anterior,
+                    binding.containerAnotacoesAnteriores, false);
             TextView textData = item.findViewById(R.id.text_data_anterior_item);
             textData.setText(dia != null ? dfDisplay.format(dia) : dataString);
-
             item.setOnClickListener(v -> showDialogAnteriores(dia, lista));
             binding.containerAnotacoesAnteriores.addView(item);
         }
     }
 
     private void showDialogAnteriores(Date data, List<DiarioResponse> lista) {
-        AlertDialog.Builder b = new AlertDialog.Builder(getContext());
-        View dialogView = getLayoutInflater().inflate(R.layout.dialog_anotacoes_anteriores, null);
+        View dialogView = getLayoutInflater()
+                .inflate(R.layout.dialog_anotacoes_anteriores, null);
 
         TextView dialogTitle = dialogView.findViewById(R.id.dialog_data_anterior_titulo);
         dialogTitle.setText("Anotações de " +
                 new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
                         .format(data != null ? data : new Date()));
 
-        exibirAnotacoes(dialogView.findViewById(R.id.dialog_container_anotacoes_anteriores), lista, false);
+        exibirAnotacoes(
+                dialogView.findViewById(R.id.dialog_container_anotacoes_anteriores),
+                lista, false);
 
-        b.setView(dialogView);
-        final AlertDialog alertDialog = b.create();
-
-        dialogView.findViewById(R.id.dialog_btn_fechar_anterior).setOnClickListener(v -> alertDialog.dismiss());
-
+        AlertDialog alertDialog = new AlertDialog.Builder(getContext())
+                .setView(dialogView).create();
+        dialogView.findViewById(R.id.dialog_btn_fechar_anterior)
+                .setOnClickListener(v -> alertDialog.dismiss());
         alertDialog.show();
     }
 
     private void showNovoSintomaDialog() {
-        AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
         View dialog = getLayoutInflater().inflate(R.layout.dialog_novo_sintoma, null);
-
-        EditText titulo = dialog.findViewById(R.id.edit_text_titulo_sintoma);
+        EditText titulo    = dialog.findViewById(R.id.edit_text_titulo_sintoma);
         EditText descricao = dialog.findViewById(R.id.edit_text_descricao_sintoma);
 
-        builder.setView(dialog);
-        builder.setPositiveButton("Salvar", (d, i) -> {
-            String intensidade = titulo.getText().toString().trim();
-            String desc = descricao.getText().toString().trim();
-            if (intensidade.isEmpty() || desc.isEmpty()) {
-                Toast.makeText(getContext(), "Preencha todos os campos", Toast.LENGTH_SHORT).show();
-                return;
-            }
-            registrarSintoma(intensidade, desc);
-        });
-        builder.setNegativeButton("Cancelar", (d, i) -> d.dismiss());
-        builder.create().show();
+        new AlertDialog.Builder(getContext())
+                .setView(dialog)
+                .setPositiveButton("Salvar", (d, i) -> {
+                    String intensidade = titulo.getText().toString().trim();
+                    String desc        = descricao.getText().toString().trim();
+                    if (intensidade.isEmpty() || desc.isEmpty()) {
+                        Toast.makeText(getContext(), "Preencha todos os campos",
+                                Toast.LENGTH_SHORT).show();
+                        return;
+                    }
+                    registrarSintoma(intensidade, desc);
+                })
+                .setNegativeButton("Cancelar", (d, i) -> d.dismiss())
+                .create().show();
     }
 
     private void registrarSintoma(String intensidade, String descricao) {
         SimpleDateFormat dfData = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
-        SimpleDateFormat dfHora = new SimpleDateFormat("HH:mm:ss", Locale.getDefault());
+        SimpleDateFormat dfHora = new SimpleDateFormat("HH:mm:ss",   Locale.getDefault());
         dfData.setTimeZone(TimeZone.getTimeZone("America/Sao_Paulo"));
         dfHora.setTimeZone(TimeZone.getTimeZone("America/Sao_Paulo"));
 
         Date agora = Calendar.getInstance(TimeZone.getTimeZone("America/Sao_Paulo")).getTime();
-
-        String data = dfData.format(agora);
-        String horario = dfHora.format(agora);
-
-        DiarioRequest req = new DiarioRequest(data, horario, intensidade, descricao);
+        DiarioRequest req = new DiarioRequest(
+                dfData.format(agora), dfHora.format(agora), intensidade, descricao);
 
         api.registrarSintoma(req).enqueue(new Callback<Void>() {
             @Override
             public void onResponse(Call<Void> call, Response<Void> r) {
-                if(isAdded()) {
-                    Toast.makeText(getContext(), "Sintoma registrado!", Toast.LENGTH_SHORT).show();
-                    carregarDiario();
-                }
+                if (!isAdded()) return;
+                Toast.makeText(getContext(), "Sintoma registrado!", Toast.LENGTH_SHORT).show();
+                mostrarSkeleton();
+                recarregarDiario();
             }
-
             @Override
             public void onFailure(Call<Void> call, Throwable t) {
-                if(isAdded()) {
-                    Toast.makeText(getContext(), "Erro ao registrar sintoma.", Toast.LENGTH_SHORT).show();
-                }
+                if (!isAdded()) return;
+                Toast.makeText(getContext(), "Erro ao registrar sintoma.", Toast.LENGTH_SHORT).show();
             }
         });
     }
@@ -599,55 +537,47 @@ public class DiarioSintomasFragment extends Fragment {
         binding.fabEditarSintoma.setEnabled(false);
 
         final List<DiarioResponse> changedItems = new ArrayList<>();
-        final List<DiarioRequest> requests = new ArrayList<>();
+        final List<DiarioRequest>  requests     = new ArrayList<>();
         int count = binding.containerAnotacoesHoje.getChildCount();
 
         for (int i = 0; i < count; i++) {
             View itemView = binding.containerAnotacoesHoje.getChildAt(i);
-            DiarioResponse originalResponse = (DiarioResponse) itemView.getTag();
-            if (originalResponse == null) continue;
+            DiarioResponse original = (DiarioResponse) itemView.getTag();
+            if (original == null) continue;
 
-            EditText editTitulo = itemView.findViewById(R.id.edit_titulo_sintoma);
+            EditText editTitulo    = itemView.findViewById(R.id.edit_titulo_sintoma);
             EditText editDescricao = itemView.findViewById(R.id.edit_descricao_sintoma);
-
             String intensidade = editTitulo.getText().toString();
-            String descricao = editDescricao.getText().toString();
+            String descricao   = editDescricao.getText().toString();
 
-            if (!intensidade.equals(originalResponse.getIntensidade()) || !descricao.equals(originalResponse.getDescricao())) {
-                changedItems.add(originalResponse);
-                requests.add(new DiarioRequest(originalResponse.getData(), originalResponse.getHorario(), intensidade, descricao));
+            if (!intensidade.equals(original.getIntensidade())
+                    || !descricao.equals(original.getDescricao())) {
+                changedItems.add(original);
+                requests.add(new DiarioRequest(original.getData(), original.getHorario(),
+                        intensidade, descricao));
             }
         }
 
-        if (changedItems.isEmpty()) {
-            exitEditMode(null);
-            return;
-        }
+        if (changedItems.isEmpty()) { exitEditMode(null); return; }
 
-        final AtomicInteger pendingSaves = new AtomicInteger(changedItems.size());
-        final List<String> errorMessages = new ArrayList<>();
+        AtomicInteger pendingSaves = new AtomicInteger(changedItems.size());
+        List<String>  errorMessages = new ArrayList<>();
 
         for (int i = 0; i < changedItems.size(); i++) {
-            DiarioResponse item = changedItems.get(i);
-            DiarioRequest request = requests.get(i);
+            DiarioResponse item    = changedItems.get(i);
+            DiarioRequest  request = requests.get(i);
 
             api.atualizarDiario(item.getId(), request).enqueue(new Callback<DiarioResponse>() {
                 @Override
-                public void onResponse(Call<DiarioResponse> call, Response<DiarioResponse> response) {
-                    if (!response.isSuccessful()) {
-                        errorMessages.add("Item " + item.getId());
-                    }
-                    if (pendingSaves.decrementAndGet() == 0) {
-                        exitEditMode(errorMessages);
-                    }
+                public void onResponse(Call<DiarioResponse> call,
+                                       Response<DiarioResponse> response) {
+                    if (!response.isSuccessful()) errorMessages.add("Item " + item.getId());
+                    if (pendingSaves.decrementAndGet() == 0) exitEditMode(errorMessages);
                 }
-
                 @Override
                 public void onFailure(Call<DiarioResponse> call, Throwable t) {
                     errorMessages.add("Item " + item.getId() + " (Falha na conexão)");
-                    if (pendingSaves.decrementAndGet() == 0) {
-                        exitEditMode(errorMessages);
-                    }
+                    if (pendingSaves.decrementAndGet() == 0) exitEditMode(errorMessages);
                 }
             });
         }
@@ -655,50 +585,47 @@ public class DiarioSintomasFragment extends Fragment {
 
     private void exitEditMode(List<String> errors) {
         if (!isAdded()) return;
-
         isEditMode = false;
         binding.fabEditarSintoma.setEnabled(true);
         binding.fabEditarSintoma.setImageResource(R.drawable.ic_edit);
         binding.fabAdicionarSintoma.setVisibility(View.VISIBLE);
 
-        if (errors == null) {
-            // No changes were made, no toast needed
-        } else if (errors.isEmpty()) {
+        if (errors != null && errors.isEmpty())
             Toast.makeText(getContext(), "Alterações salvas com sucesso!", Toast.LENGTH_SHORT).show();
-        } else {
-            Toast.makeText(getContext(), "Falha ao salvar " + errors.size() + " itens.", Toast.LENGTH_LONG).show();
-        }
+        else if (errors != null)
+            Toast.makeText(getContext(), "Falha ao salvar " + errors.size() + " itens.",
+                    Toast.LENGTH_LONG).show();
 
-//        carregarDiario();
+        mostrarSkeleton();
         recarregarDiario();
-
     }
 
     private void excluirAnotacao(Long id) {
         new AlertDialog.Builder(getContext())
                 .setTitle("Excluir Anotação")
                 .setMessage("Tem certeza que deseja excluir esta anotação?")
-                .setPositiveButton("Excluir", (dialog, which) -> {
-                    api.deletarDiario(id).enqueue(new Callback<Void>() {
-                        @Override
-                        public void onResponse(Call<Void> call, Response<Void> response) {
-                            if (isAdded() && response.isSuccessful()) {
-                                Toast.makeText(getContext(), "Anotação excluída", Toast.LENGTH_SHORT).show();
-//                                carregarDiario();
-                                recarregarDiario();
-                            } else if (isAdded()) {
-                                Toast.makeText(getContext(), "Falha ao excluir anotação", Toast.LENGTH_SHORT).show();
+                .setPositiveButton("Excluir", (dialog, which) ->
+                        api.deletarDiario(id).enqueue(new Callback<Void>() {
+                            @Override
+                            public void onResponse(Call<Void> call, Response<Void> response) {
+                                if (!isAdded()) return;
+                                if (response.isSuccessful()) {
+                                    Toast.makeText(getContext(), "Anotação excluída",
+                                            Toast.LENGTH_SHORT).show();
+                                    mostrarSkeleton();
+                                    recarregarDiario();
+                                } else {
+                                    Toast.makeText(getContext(), "Falha ao excluir anotação",
+                                            Toast.LENGTH_SHORT).show();
+                                }
                             }
-                        }
-
-                        @Override
-                        public void onFailure(Call<Void> call, Throwable t) {
-                            if (isAdded()) {
-                                Toast.makeText(getContext(), "Falha ao excluir anotação", Toast.LENGTH_SHORT).show();
+                            @Override
+                            public void onFailure(Call<Void> call, Throwable t) {
+                                if (!isAdded()) return;
+                                Toast.makeText(getContext(), "Falha ao excluir anotação",
+                                        Toast.LENGTH_SHORT).show();
                             }
-                        }
-                    });
-                })
+                        }))
                 .setNegativeButton("Cancelar", null)
                 .show();
     }

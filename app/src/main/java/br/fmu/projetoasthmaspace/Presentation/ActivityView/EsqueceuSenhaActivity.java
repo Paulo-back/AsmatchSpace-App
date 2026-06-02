@@ -4,13 +4,14 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
+import android.text.method.HideReturnsTransformationMethod;
+import android.text.method.PasswordTransformationMethod;
 import android.view.View;
 import android.widget.EditText;
+import android.widget.ImageButton;
 import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.ViewFlipper;
-
-import androidx.appcompat.app.AppCompatActivity;
 
 import br.fmu.projetoasthmaspace.R;
 import br.fmu.projetoasthmaspace.Data.Service.Client.ApiClient;
@@ -24,7 +25,7 @@ import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 
-public class EsqueceuSenhaActivity extends BaseActivity  {
+public class EsqueceuSenhaActivity extends BaseActivity {
 
     private ViewFlipper viewFlipper;
     private EditText editEmailRecuperacao;
@@ -33,6 +34,10 @@ public class EsqueceuSenhaActivity extends BaseActivity  {
     private EditText editNovaSenha, editConfirmarSenha;
     private TextView textForcaSenha;
     private View forca1, forca2, forca3, forca4;
+
+    private ImageButton btnToggleNovaSenha, btnToggleConfirmarSenha;
+    private boolean novaSenhaVisivel = false;
+    private boolean confirmarSenhaVisivel = false;
 
     private String emailRecuperacao;
     private String tokenRedefinicao;
@@ -46,21 +51,24 @@ public class EsqueceuSenhaActivity extends BaseActivity  {
         configurarBotoes();
         configurarMascaraData();
         configurarForcaSenha();
+        configurarTogglesSenha();
     }
 
     private void bindViews() {
-        viewFlipper          = findViewById(R.id.viewFlipper);
-        editEmailRecuperacao = findViewById(R.id.editEmailRecuperacao);
-        editDataNascimento   = findViewById(R.id.editDataNascimento);
-        editCpf              = findViewById(R.id.editCpf);
-        labelCpf             = findViewById(R.id.labelCpf);
-        editNovaSenha        = findViewById(R.id.editNovaSenha);
-        editConfirmarSenha   = findViewById(R.id.editConfirmarSenha);
-        textForcaSenha       = findViewById(R.id.textForcaSenha);
-        forca1 = findViewById(R.id.forca1);
-        forca2 = findViewById(R.id.forca2);
-        forca3 = findViewById(R.id.forca3);
-        forca4 = findViewById(R.id.forca4);
+        viewFlipper              = findViewById(R.id.viewFlipper);
+        editEmailRecuperacao     = findViewById(R.id.editEmailRecuperacao);
+        editDataNascimento       = findViewById(R.id.editDataNascimento);
+        editCpf                  = findViewById(R.id.editCpf);
+        labelCpf                 = findViewById(R.id.labelCpf);
+        editNovaSenha            = findViewById(R.id.editNovaSenha);
+        editConfirmarSenha       = findViewById(R.id.editConfirmarSenha);
+        textForcaSenha           = findViewById(R.id.textForcaSenha);
+        forca1                   = findViewById(R.id.forca1);
+        forca2                   = findViewById(R.id.forca2);
+        forca3                   = findViewById(R.id.forca3);
+        forca4                   = findViewById(R.id.forca4);
+        btnToggleNovaSenha       = findViewById(R.id.btnToggleNovaSenha);
+        btnToggleConfirmarSenha  = findViewById(R.id.btnToggleConfirmarSenha);
     }
 
     private void configurarBotoes() {
@@ -70,6 +78,30 @@ public class EsqueceuSenhaActivity extends BaseActivity  {
         findViewById(R.id.textVoltarEmail).setOnClickListener(v -> viewFlipper.showPrevious());
         findViewById(R.id.btnRedefinirSenha).setOnClickListener(v -> redefinirSenha());
         findViewById(R.id.btnIrParaLogin).setOnClickListener(v -> irParaLogin());
+    }
+
+    private void configurarTogglesSenha() {
+        btnToggleNovaSenha.setOnClickListener(v -> {
+            novaSenhaVisivel = !novaSenhaVisivel;
+            editNovaSenha.setTransformationMethod(novaSenhaVisivel
+                    ? HideReturnsTransformationMethod.getInstance()
+                    : PasswordTransformationMethod.getInstance());
+            btnToggleNovaSenha.setImageResource(novaSenhaVisivel
+                    ? R.drawable.ic_visibility
+                    : R.drawable.ic_visibility_off);
+            editNovaSenha.setSelection(editNovaSenha.getText().length());
+        });
+
+        btnToggleConfirmarSenha.setOnClickListener(v -> {
+            confirmarSenhaVisivel = !confirmarSenhaVisivel;
+            editConfirmarSenha.setTransformationMethod(confirmarSenhaVisivel
+                    ? HideReturnsTransformationMethod.getInstance()
+                    : PasswordTransformationMethod.getInstance());
+            btnToggleConfirmarSenha.setImageResource(confirmarSenhaVisivel
+                    ? R.drawable.ic_visibility
+                    : R.drawable.ic_visibility_off);
+            editConfirmarSenha.setSelection(editConfirmarSenha.getText().length());
+        });
     }
 
     // ---------------------------------------------------------------- passo 0
@@ -108,18 +140,16 @@ public class EsqueceuSenhaActivity extends BaseActivity  {
     private void confirmarIdentidade() {
         String dataStr = editDataNascimento.getText().toString().trim();
 
-        // Valida formato DD/MM/AAAA
         if (dataStr.length() != 10) {
             editDataNascimento.setError("Informe a data completa (DD/MM/AAAA)");
             return;
         }
 
-        // Converte DD/MM/AAAA → yyyy-MM-dd para o backend
         String dataFormatada;
         try {
             String[] partes = dataStr.split("/");
             if (partes.length != 3) throw new Exception("formato inválido");
-            dataFormatada = partes[2] + "-" + partes[1] + "-" + partes[0]; // yyyy-MM-dd
+            dataFormatada = partes[2] + "-" + partes[1] + "-" + partes[0];
         } catch (Exception e) {
             editDataNascimento.setError("Formato inválido. Use DD/MM/AAAA");
             return;
@@ -220,12 +250,10 @@ public class EsqueceuSenhaActivity extends BaseActivity  {
                 if (isUpdating) return;
                 String digits = s.toString().replaceAll("[^0-9]", "");
                 StringBuilder formatted = new StringBuilder();
-
                 for (int i = 0; i < digits.length() && i < 8; i++) {
                     if (i == 2 || i == 4) formatted.append("/");
                     formatted.append(digits.charAt(i));
                 }
-
                 isUpdating = true;
                 editDataNascimento.setText(formatted.toString());
                 editDataNascimento.setSelection(formatted.length());

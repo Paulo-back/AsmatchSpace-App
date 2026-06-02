@@ -65,13 +65,12 @@ public class LembretesActivity extends Fragment {
     private SimpleDateFormat displayDateFormat;
     private String filtroAtivo = null;
     private boolean dadosCarregados = false;
+    private boolean carregando = false; // ← flag anti-duplicata
     private final List<LembreteInstancia> listaDeInstancias = new ArrayList<>();
     private int diasPassadosFiltro = 7;
 
-    // ── Skeleton ──────────────────────────────────────────────────────────────
     private ShimmerFrameLayout shimmerLayout;
     private boolean skeletonInflado = false;
-    // ─────────────────────────────────────────────────────────────────────────
 
     @Nullable
     @Override
@@ -82,7 +81,6 @@ public class LembretesActivity extends Fragment {
         parseDateFormat.setTimeZone(TimeZone.getTimeZone("America/Sao_Paulo"));
         displayDateFormat = new SimpleDateFormat("dd 'de' MMMM 'de' yyyy", new Locale("pt", "BR"));
         displayDateFormat.setTimeZone(TimeZone.getTimeZone("America/Sao_Paulo"));
-
         binding = ActivityLembretesBinding.inflate(inflater, container, false);
         return binding.getRoot();
     }
@@ -103,7 +101,6 @@ public class LembretesActivity extends Fragment {
         binding.statProgramados.getRoot().setOnClickListener(v -> toggleFiltro("programados"));
         binding.statConcluidos.getRoot().setOnClickListener(v -> toggleFiltro("concluidos"));
         binding.statTodos.getRoot().setOnClickListener(v -> toggleFiltro(null));
-
         binding.btnFiltrarPeriodo.setOnClickListener(v -> showFiltroPeriodoDialog());
     }
 
@@ -117,12 +114,14 @@ public class LembretesActivity extends Fragment {
     @Override
     public void onHiddenChanged(boolean hidden) {
         super.onHiddenChanged(hidden);
-        if (!hidden) {
+        if (hidden) {
+            dadosCarregados = false;
+        } else {
             carregarInstanciasPorPeriodo();
         }
     }
 
-    // ── Skeleton helpers ──────────────────────────────────────────────────────
+    // ── Skeleton ─────────────────────────────────────────────────────────────
 
     private void mostrarSkeleton() {
         if (binding == null) return;
@@ -132,7 +131,6 @@ public class LembretesActivity extends Fragment {
         }
         shimmerLayout.setVisibility(View.VISIBLE);
         shimmerLayout.startShimmer();
-        // Esconde apenas o ScrollView da lista; cabeçalho continua visível
         getScrollViewLista().setVisibility(View.GONE);
     }
 
@@ -145,26 +143,22 @@ public class LembretesActivity extends Fragment {
         getScrollViewLista().setVisibility(View.VISIBLE);
     }
 
-    /**
-     * O ScrollView da lista não tem id próprio no XML original.
-     * Usamos getChildAt para localizá-lo de forma segura pelo ViewStub stub.
-     * Como o ViewBinding não gera binding para ScrollViews sem id,
-     * adicionamos um id agora via XML — veja a nota abaixo.
-     */
     private View getScrollViewLista() {
-        // O id scroll_lista_lembretes foi adicionado no activity_lembretes.xml
         return binding.getRoot().findViewById(R.id.scroll_lista_lembretes);
     }
 
-    // ─────────────────────────────────────────────────────────────────────────
+    // ── Backend ───────────────────────────────────────────────────────────────
 
     private void carregarInstanciasPorPeriodo() {
+        if (carregando) return; // ← bloqueia chamada duplicada
+        carregando = true;
         if (!dadosCarregados) mostrarSkeleton();
 
         api.listarInstanciasPorPeriodo(diasPassadosFiltro).enqueue(new Callback<List<LembreteInstancia>>() {
             @Override
             public void onResponse(Call<List<LembreteInstancia>> call,
                                    Response<List<LembreteInstancia>> response) {
+                carregando = false; // ← libera sempre
                 if (!isAdded() || binding == null) return;
                 if (response.isSuccessful() && response.body() != null) {
                     dadosCarregados = true;
@@ -173,24 +167,23 @@ public class LembretesActivity extends Fragment {
                     atualizarPainelDeResumo();
                     atualizarTextoBotaoFiltro();
                     renderizarLista();
-                    esconderSkeleton(); // ← só após tudo renderizado
+                    esconderSkeleton();
                 } else {
                     Toast.makeText(getContext(), "Erro ao buscar lembretes", Toast.LENGTH_SHORT).show();
-                    esconderSkeleton(); // ← evita tela travada
+                    esconderSkeleton();
                 }
             }
 
             @Override
             public void onFailure(Call<List<LembreteInstancia>> call, Throwable t) {
+                carregando = false; // ← libera sempre
                 if (!isAdded() || binding == null) return;
                 Toast.makeText(getContext(), "Falha na conexão", Toast.LENGTH_SHORT).show();
-                esconderSkeleton(); // ← evita tela travada
+                esconderSkeleton();
             }
         });
     }
 
-    // Extraia a data do request antes de chamar
-// O req já tem dataInicio no formato yyyy-MM-dd
     private void criarTemplate(LembreteTemplateRequest req, int hora, int minuto, String titulo) {
         api.criarTemplate(req).enqueue(new Callback<LembreteTemplate>() {
             @Override
@@ -201,6 +194,7 @@ public class LembretesActivity extends Fragment {
                     LocationHelper.obterLocalizacao(requireContext(),
                             (lat, lon) -> agendarLembrete(hora, minuto, req.dataInicio,
                                     titulo, "Lembrete programado!", req.tipoRecorrencia));
+                    dadosCarregados = false;
                     carregarInstanciasPorPeriodo();
                 } else {
                     Toast.makeText(getContext(), "Erro ao salvar!", Toast.LENGTH_SHORT).show();
@@ -217,17 +211,16 @@ public class LembretesActivity extends Fragment {
     private void atualizarTemplate(Long templateId, LembreteTemplateRequest req) {
         api.atualizarTemplate(templateId, req).enqueue(new Callback<LembreteTemplate>() {
             @Override
-            public void onResponse(Call<LembreteTemplate> call,
-                                   Response<LembreteTemplate> response) {
+            public void onResponse(Call<LembreteTemplate> call, Response<LembreteTemplate> response) {
                 if (!isAdded()) return;
                 if (response.isSuccessful()) {
                     Toast.makeText(getContext(), "Lembrete atualizado!", Toast.LENGTH_SHORT).show();
+                    dadosCarregados = false;
                     carregarInstanciasPorPeriodo();
                 } else {
                     Toast.makeText(getContext(), "Erro ao atualizar (" + response.code() + ")", Toast.LENGTH_SHORT).show();
                 }
             }
-
             @Override
             public void onFailure(Call<LembreteTemplate> call, Throwable t) {
                 if (!isAdded()) return;
@@ -243,12 +236,54 @@ public class LembretesActivity extends Fragment {
                 if (!isAdded()) return;
                 if (response.isSuccessful()) {
                     Toast.makeText(getContext(), "Lembrete excluído!", Toast.LENGTH_SHORT).show();
+                    dadosCarregados = false;
                     carregarInstanciasPorPeriodo();
                 } else {
                     Toast.makeText(getContext(), "Erro ao excluir (" + response.code() + ")", Toast.LENGTH_SHORT).show();
                 }
             }
+            @Override
+            public void onFailure(Call<Void> call, Throwable t) {
+                if (!isAdded()) return;
+                Toast.makeText(getContext(), "Falha de conexão!", Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
 
+    private void deletarInstancia(Long instanciaId) {
+        api.deletarInstancia(instanciaId).enqueue(new Callback<Void>() {
+            @Override
+            public void onResponse(Call<Void> call, Response<Void> response) {
+                if (!isAdded()) return;
+                if (response.isSuccessful()) {
+                    Toast.makeText(getContext(), "Dia removido!", Toast.LENGTH_SHORT).show();
+                    dadosCarregados = false;
+                    carregarInstanciasPorPeriodo();
+                } else {
+                    Toast.makeText(getContext(), "Erro ao remover (" + response.code() + ")", Toast.LENGTH_SHORT).show();
+                }
+            }
+            @Override
+            public void onFailure(Call<Void> call, Throwable t) {
+                if (!isAdded()) return;
+                Toast.makeText(getContext(), "Falha de conexão!", Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+
+    private void deletarInstanciaEFuturas(Long instanciaId) {
+        api.deletarInstanciaEFuturas(instanciaId).enqueue(new Callback<Void>() {
+            @Override
+            public void onResponse(Call<Void> call, Response<Void> response) {
+                if (!isAdded()) return;
+                if (response.isSuccessful()) {
+                    Toast.makeText(getContext(), "Este e próximos removidos!", Toast.LENGTH_SHORT).show();
+                    dadosCarregados = false;
+                    carregarInstanciasPorPeriodo();
+                } else {
+                    Toast.makeText(getContext(), "Erro ao remover (" + response.code() + ")", Toast.LENGTH_SHORT).show();
+                }
+            }
             @Override
             public void onFailure(Call<Void> call, Throwable t) {
                 if (!isAdded()) return;
@@ -273,7 +308,6 @@ public class LembretesActivity extends Fragment {
                     Toast.makeText(getContext(), "Erro ao concluir (" + response.code() + ")", Toast.LENGTH_SHORT).show();
                 }
             }
-
             @Override
             public void onFailure(Call<Void> call, Throwable t) {
                 if (!isAdded()) return;
@@ -285,15 +319,15 @@ public class LembretesActivity extends Fragment {
         });
     }
 
+    // ── Filtro período ────────────────────────────────────────────────────────
+
     private void showFiltroPeriodoDialog() {
         String[] opcoes = {"Últimos 7 dias", "Últimos 15 dias", "Últimos 30 dias", "Últimos 60 dias"};
-        int[]    valores = {7, 15, 30, 60};
-
+        int[] valores = {7, 15, 30, 60};
         int indexAtual = 0;
         for (int i = 0; i < valores.length; i++) {
             if (valores[i] == diasPassadosFiltro) { indexAtual = i; break; }
         }
-
         new AlertDialog.Builder(requireContext(), R.style.DialogTheme)
                 .setTitle("Exibir lembretes de:")
                 .setSingleChoiceItems(opcoes, indexAtual, (dialog, which) -> {
@@ -308,16 +342,17 @@ public class LembretesActivity extends Fragment {
     }
 
     private void atualizarTextoBotaoFiltro() {
-        binding.btnFiltrarPeriodo.setText("Últimos " + diasPassadosFiltro + " dias");
+        if (binding != null)
+            binding.btnFiltrarPeriodo.setText("Últimos " + diasPassadosFiltro + " dias");
     }
 
-    // ── Dialog de criação/edição ──────────────────────────────────────────────
+    // ── Dialog criação/edição ─────────────────────────────────────────────────
 
     private void showTemplateDialog(@Nullable final LembreteInstancia instanciaExistente) {
         final boolean isEditing = instanciaExistente != null;
 
-        final int[]    horaSelecionada    = {Calendar.getInstance().get(Calendar.HOUR_OF_DAY)};
-        final int[]    minutoSelecionado  = {Calendar.getInstance().get(Calendar.MINUTE)};
+        final int[] horaSelecionada   = {Calendar.getInstance().get(Calendar.HOUR_OF_DAY)};
+        final int[] minutoSelecionado = {Calendar.getInstance().get(Calendar.MINUTE)};
         final String[] dataSelecionada    = {isEditing ? instanciaExistente.data : parseDateFormat.format(new Date())};
         final String[] dataFimSelecionada = {null};
         final String[] tipoRecorrencia    = {"NENHUMA"};
@@ -525,8 +560,8 @@ public class LembretesActivity extends Fragment {
 
             View groupView = inflater.inflate(R.layout.item_data_expandable,
                     binding.containerLembretes, false);
-            TextView     dataHeader    = groupView.findViewById(R.id.text_data_header);
-            ImageView    deleteGroup   = groupView.findViewById(R.id.icon_delete_group);
+            TextView     dataHeader   = groupView.findViewById(R.id.text_data_header);
+            ImageView    deleteGroup  = groupView.findViewById(R.id.icon_delete_group);
             LinearLayout containerDia = groupView.findViewById(R.id.container_lembretes_do_dia);
 
             dataHeader.setText(dataKey);
@@ -615,11 +650,11 @@ public class LembretesActivity extends Fragment {
         long todosCount      = listaDeInstancias.size();
         long concluidosCount = listaDeInstancias.stream().filter(LembreteInstancia::isConcluido).count();
 
-        setupCard(binding.statHoje,       "Hoje",       String.valueOf(hojeCount),
+        setupCard(binding.statHoje,       "Hoje",      String.valueOf(hojeCount),
                 R.drawable.icon_hoje,        R.drawable.bg_icon_hoje,        R.color.blue_navy);
         setupCard(binding.statProgramados, "Pendentes", String.valueOf(pendentesCount),
                 R.drawable.icon_programados, R.drawable.bg_icon_programados, R.color.red_dark);
-        setupCard(binding.statTodos,       "Todos",     String.valueOf(todosCount),
+        setupCard(binding.statTodos,       "Todos",    String.valueOf(todosCount),
                 R.drawable.icon_todos,       R.drawable.bg_icon_todos,       R.color.gray_dark);
         setupCard(binding.statConcluidos,  "Concluídos", String.valueOf(concluidosCount),
                 R.drawable.icon_concluidos,  R.drawable.bg_icon_concluidos,  R.color.green_dark);
@@ -659,10 +694,37 @@ public class LembretesActivity extends Fragment {
 
     private void showDeleteConfirmationDialog(LembreteInstancia inst) {
         if (inst == null || inst.templateId == null) return;
-        new AlertDialog.Builder(requireContext())
-                .setTitle("Excluir Lembrete")
-                .setMessage("Isso removerá o lembrete e todas as suas recorrências. Confirma?")
-                .setPositiveButton("Excluir", (d, w) -> deletarTemplate(inst.templateId))
+
+        boolean isRecorrente = "DIARIA".equals(inst.tipoRecorrencia)
+                || "SEMANAL".equals(inst.tipoRecorrencia);
+
+        if (!isRecorrente) {
+            new AlertDialog.Builder(requireContext(), R.style.DialogTheme)
+                    .setTitle("Excluir Lembrete")
+                    .setMessage("Deseja excluir este lembrete?")
+                    .setPositiveButton("Excluir", (d, w) -> deletarTemplate(inst.templateId))
+                    .setNegativeButton("Cancelar", null)
+                    .show();
+            return;
+        }
+
+        final int[] opcaoSelecionada = {0};
+        String[] opcoes = {
+                "Somente este dia",
+                "Este e todos os próximos",
+                "Todos os dias (excluir tudo)"
+        };
+
+        new AlertDialog.Builder(requireContext(), R.style.DialogTheme)
+                .setTitle("Excluir lembrete recorrente")
+                .setSingleChoiceItems(opcoes, 0, (dialog, which) -> opcaoSelecionada[0] = which)
+                .setPositiveButton("Excluir", (dialog, w) -> {
+                    switch (opcaoSelecionada[0]) {
+                        case 0: deletarInstancia(inst.instanciaId);        break;
+                        case 1: deletarInstanciaEFuturas(inst.instanciaId); break;
+                        case 2: deletarTemplate(inst.templateId);           break;
+                    }
+                })
                 .setNegativeButton("Cancelar", null)
                 .show();
     }
@@ -721,16 +783,12 @@ public class LembretesActivity extends Fragment {
         c.set(Calendar.SECOND, 0);
         c.set(Calendar.MILLISECOND, 0);
 
-        // Se o horário já passou, avança conforme a recorrência
         if (c.before(Calendar.getInstance())) {
             if ("DIARIA".equals(tipoRecorrencia)) {
-                // Próximo disparo = amanhã no mesmo horário
                 c.add(Calendar.DAY_OF_MONTH, 1);
             } else if ("SEMANAL".equals(tipoRecorrencia)) {
-                // Próximo disparo = semana que vem no mesmo horário
                 c.add(Calendar.DAY_OF_MONTH, 7);
             } else {
-                // NENHUMA e já passou — não agenda
                 Log.d("Lembretes", "Horário já passou e sem recorrência, não agendado.");
                 return;
             }
@@ -747,9 +805,7 @@ public class LembretesActivity extends Fragment {
         intent.putExtra("requestCode", requestCode);
 
         PendingIntent pendingIntent = PendingIntent.getBroadcast(
-                getContext(),
-                requestCode,
-                intent,
+                getContext(), requestCode, intent,
                 PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
 
         AlarmManager alarmManager =

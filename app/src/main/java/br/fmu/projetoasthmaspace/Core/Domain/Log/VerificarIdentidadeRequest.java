@@ -10,8 +10,9 @@ public class VerificarIdentidadeRequest {
     public void setEmail(String email) { this.email = email; }
 
     public String getDataNascimento() { return dataNascimento; }
-    public String setDataNascimento(String dataNascimento) { return dataNascimento; }
+    public void setDataNascimento(String dataNascimento) { this.dataNascimento = dataNascimento; } // fix
 
     public String getCpf() { return cpf; }
     public void setCpf(String cpf) { this.cpf = cpf; }
+
 }

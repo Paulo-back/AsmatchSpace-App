@@ -126,6 +126,12 @@ public interface ApiService {
             @Path("id") Long id,
             @Query("status") String status);
 
+    @DELETE("lembretes/instancias/{id}")
+    Call<Void> deletarInstancia(@Path("id") Long id);
+
+    @DELETE("lembretes/instancias/{id}/futuras")
+    Call<Void> deletarInstanciaEFuturas(@Path("id") Long id);
+
     // -------- Redefinir Senha --------
 
     @GET("auth/recuperar-senha/info")

@@ -32,15 +32,14 @@ public class TarefasActivity extends Fragment {
     private ActivityTarefasBinding binding;
     private ApiService api;
     private boolean dadosCarregados = false;
+    private boolean carregando = false; // ← flag anti-duplicata
 
     private TarefasAdapter adapter;
     private final List<LembreteInstancia> tarefasPendentes  = new ArrayList<>();
     private final List<LembreteInstancia> tarefasConcluidas = new ArrayList<>();
 
-    // ── Skeleton ──────────────────────────────────────────────────────────────
     private ShimmerFrameLayout shimmerLayout;
     private boolean skeletonInflado = false;
-    // ─────────────────────────────────────────────────────────────────────────
 
     @Nullable
     @Override
@@ -68,12 +67,14 @@ public class TarefasActivity extends Fragment {
     @Override
     public void onHiddenChanged(boolean hidden) {
         super.onHiddenChanged(hidden);
-        if (!hidden) {
+        if (hidden) {
+            dadosCarregados = false;
+        } else {
             carregarInstanciasDeHoje();
         }
     }
 
-    // ── Skeleton helpers ──────────────────────────────────────────────────────
+    // ── Skeleton ──────────────────────────────────────────────────────────────
 
     private void mostrarSkeleton() {
         if (binding == null) return;
@@ -95,17 +96,18 @@ public class TarefasActivity extends Fragment {
         binding.scrollTarefas.setVisibility(View.VISIBLE);
     }
 
-    // ─────────────────────────────────────────────────────────────────────────
+    // ── Backend ───────────────────────────────────────────────────────────────
 
     private void carregarInstanciasDeHoje() {
-        // Só mostra skeleton se o conteúdo ainda não foi carregado
-        // (evita piscar ao alternar de aba com dados já na tela)
+        if (carregando) return; // ← bloqueia chamada duplicata
+        carregando = true;
         if (!dadosCarregados) mostrarSkeleton();
 
         api.instanciasDeHoje().enqueue(new Callback<List<LembreteInstancia>>() {
             @Override
             public void onResponse(Call<List<LembreteInstancia>> call,
                                    Response<List<LembreteInstancia>> response) {
+                carregando = false; // ← libera sempre
                 if (!isAdded() || binding == null) return;
 
                 if (response.isSuccessful() && response.body() != null) {
@@ -122,18 +124,19 @@ public class TarefasActivity extends Fragment {
                             + " | Concluídas: " + tarefasConcluidas.size());
 
                     atualizarUI();
-                    esconderSkeleton(); // ← aparece só depois de tudo preenchido
+                    esconderSkeleton();
                 } else {
                     Log.e("TAREFAS", "Erro HTTP: " + response.code());
-                    esconderSkeleton(); // ← evita tela travada em caso de erro
+                    esconderSkeleton();
                 }
             }
 
             @Override
             public void onFailure(Call<List<LembreteInstancia>> call, Throwable t) {
+                carregando = false; // ← libera sempre
                 if (!isAdded() || binding == null) return;
                 Log.e("TAREFAS", "Falha: " + t.getMessage());
-                esconderSkeleton(); // ← evita tela travada em falha de rede
+                esconderSkeleton();
             }
         });
     }
@@ -147,8 +150,15 @@ public class TarefasActivity extends Fragment {
         api.atualizarStatus(tarefa.instanciaId, "CONCLUIDO").enqueue(new Callback<Void>() {
             @Override
             public void onResponse(Call<Void> call, Response<Void> response) {
-                if (!response.isSuccessful())
+                if (!response.isSuccessful()) {
                     Log.e("TAREFAS", "Erro ao concluir: " + response.code());
+                    if (isAdded()) {
+                        tarefasConcluidas.remove(tarefa);
+                        tarefasPendentes.add(tarefa);
+                        tarefa.status = "PENDENTE";
+                        atualizarUI();
+                    }
+                }
             }
             @Override
             public void onFailure(Call<Void> call, Throwable t) {
@@ -172,8 +182,15 @@ public class TarefasActivity extends Fragment {
         api.atualizarStatus(tarefa.instanciaId, "PENDENTE").enqueue(new Callback<Void>() {
             @Override
             public void onResponse(Call<Void> call, Response<Void> response) {
-                if (!response.isSuccessful())
+                if (!response.isSuccessful()) {
                     Log.e("TAREFAS", "Erro ao reabrir: " + response.code());
+                    if (isAdded()) {
+                        tarefasPendentes.remove(tarefa);
+                        tarefasConcluidas.add(tarefa);
+                        tarefa.status = "CONCLUIDO";
+                        atualizarUI();
+                    }
+                }
             }
             @Override
             public void onFailure(Call<Void> call, Throwable t) {
@@ -198,8 +215,12 @@ public class TarefasActivity extends Fragment {
                 n == 1 ? "1 tarefa pendente"
                         : String.format(Locale.getDefault(), "%d tarefas pendentes", n));
 
-        adapter = new TarefasAdapter(tarefasPendentes, this::concluirInstancia);
-        binding.recyclerTarefas.setAdapter(adapter);
+        if (adapter == null) {
+            adapter = new TarefasAdapter(tarefasPendentes, this::concluirInstancia);
+            binding.recyclerTarefas.setAdapter(adapter);
+        } else {
+            adapter.notifyDataSetChanged();
+        }
 
         atualizarConcluidasHoje();
     }

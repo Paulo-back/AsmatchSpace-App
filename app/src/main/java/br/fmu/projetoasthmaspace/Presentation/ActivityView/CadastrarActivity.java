@@ -4,12 +4,13 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
+import android.text.method.HideReturnsTransformationMethod;
+import android.text.method.PasswordTransformationMethod;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
-import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
@@ -17,9 +18,13 @@ import androidx.core.view.WindowInsetsCompat;
 import br.fmu.projetoasthmaspace.R;
 import br.fmu.projetoasthmaspace.databinding.ActivityCadastrarBinding;
 
-public class CadastrarActivity extends BaseActivity  implements AdapterView.OnItemSelectedListener {
+public class CadastrarActivity extends BaseActivity implements AdapterView.OnItemSelectedListener {
 
     private ActivityCadastrarBinding binding;
+
+    // Controle de visibilidade dos campos de senha
+    private boolean senhaVisivel = false;
+    private boolean confirmarSenhaVisivel = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -36,23 +41,34 @@ public class CadastrarActivity extends BaseActivity  implements AdapterView.OnIt
         });
 
         configurarMascaraData();
+        configurarToggleSenha();
 
         binding.btnContinuar.setOnClickListener(v -> {
-            String nomeCompleto    = binding.editTextNomeCompleto.getText().toString();
-            String email           = binding.editTextEmail.getText().toString();
-            String senha           = binding.editTextCriarSenha.getText().toString();
-            String cpf             = binding.editTextCpf.getText().toString();
-            String telefone        = binding.editTextTelefone.getText().toString();
-            String dataNascimento  = binding.editTextDataNascimento.getText().toString();
-            String sexo            = binding.spinnerSexo.getSelectedItem().toString();
+            String nomeCompleto   = binding.editTextNomeCompleto.getText().toString();
+            String email          = binding.editTextEmail.getText().toString();
+            String senha          = binding.editTextCriarSenha.getText().toString();
+            String confirmarSenha = binding.editTextConfirmarSenha.getText().toString();
+            String cpf            = binding.editTextCpf.getText().toString();
+            String telefone       = binding.editTextTelefone.getText().toString();
+            String dataNascimento = binding.editTextDataNascimento.getText().toString();
+            String sexo           = binding.spinnerSexo.getSelectedItem().toString();
 
             if (nomeCompleto.isEmpty() || email.isEmpty() || senha.isEmpty() ||
-                    dataNascimento.length() < 10 || sexo.isEmpty()) {
+                    confirmarSenha.isEmpty() || dataNascimento.length() < 10 || sexo.isEmpty()) {
                 Toast.makeText(this, "Preencha todos os campos obrigatórios com *.", Toast.LENGTH_SHORT).show();
                 return;
             }
+
             if (sexo.equals("Selecione")) {
                 Toast.makeText(this, "Selecione um sexo.", Toast.LENGTH_SHORT).show();
+                return;
+            }
+
+            // Valida se as senhas conferem
+            if (!senha.equals(confirmarSenha)) {
+                binding.editTextConfirmarSenha.setError("As senhas não coincidem");
+                binding.editTextConfirmarSenha.requestFocus();
+                Toast.makeText(this, "As senhas não coincidem.", Toast.LENGTH_SHORT).show();
                 return;
             }
 
@@ -66,12 +82,13 @@ public class CadastrarActivity extends BaseActivity  implements AdapterView.OnIt
                 return;
             }
 
+            // Envia apenas a senha original, não a confirmação
             Intent intent = new Intent(CadastrarActivity.this, InfAdicionaisActivity.class);
             intent.putExtra("USER_NAME", nomeCompleto);
             intent.putExtra("email", email);
             intent.putExtra("cpf", cpf);
             intent.putExtra("telefone", telefone);
-            intent.putExtra("dataNascimento", dataFormatada); // yyyy-MM-dd
+            intent.putExtra("dataNascimento", dataFormatada);
             intent.putExtra("senha", senha);
             intent.putExtra("sexo", sexo);
             startActivity(intent);
@@ -81,6 +98,41 @@ public class CadastrarActivity extends BaseActivity  implements AdapterView.OnIt
             Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
             return insets;
+        });
+    }
+
+    private void configurarToggleSenha() {
+        // Olhinho — campo "Criar Senha"
+        binding.btnToggleSenha.setOnClickListener(v -> {
+            senhaVisivel = !senhaVisivel;
+            if (senhaVisivel) {
+                binding.editTextCriarSenha.setTransformationMethod(
+                        HideReturnsTransformationMethod.getInstance());
+                binding.btnToggleSenha.setImageResource(R.drawable.ic_visibility);
+            } else {
+                binding.editTextCriarSenha.setTransformationMethod(
+                        PasswordTransformationMethod.getInstance());
+                binding.btnToggleSenha.setImageResource(R.drawable.ic_visibility_off);
+            }
+            // Mantém cursor no fim do texto
+            binding.editTextCriarSenha.setSelection(
+                    binding.editTextCriarSenha.getText().length());
+        });
+
+        // Olhinho — campo "Confirmar Senha"
+        binding.btnToggleConfirmarSenha.setOnClickListener(v -> {
+            confirmarSenhaVisivel = !confirmarSenhaVisivel;
+            if (confirmarSenhaVisivel) {
+                binding.editTextConfirmarSenha.setTransformationMethod(
+                        HideReturnsTransformationMethod.getInstance());
+                binding.btnToggleConfirmarSenha.setImageResource(R.drawable.ic_visibility);
+            } else {
+                binding.editTextConfirmarSenha.setTransformationMethod(
+                        PasswordTransformationMethod.getInstance());
+                binding.btnToggleConfirmarSenha.setImageResource(R.drawable.ic_visibility_off);
+            }
+            binding.editTextConfirmarSenha.setSelection(
+                    binding.editTextConfirmarSenha.getText().length());
         });
     }
 

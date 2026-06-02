@@ -211,6 +211,7 @@
         </LinearLayout>
 
         <!-- Passo 2: Nova senha -->
+        <!-- Passo 2: Nova senha -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -245,19 +246,47 @@
                 android:textColor="@color/white"
                 android:textSize="13dp" />
 
-            <EditText
-                android:id="@+id/editNovaSenha"
+            <!-- Nova senha com olhinho -->
+            <androidx.constraintlayout.widget.ConstraintLayout
+                android:id="@+id/containerNovaSenha"
                 android:layout_width="280dp"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="5dp"
-                android:background="@drawable/text_box"
-                android:hint="Mínimo 8 caracteres"
-                android:inputType="textPassword"
-                android:padding="10dp"
-                android:textColor="@color/white"
-                android:textColorHint="#B3FFFFFF"
-                android:textSize="12dp" />
+                android:background="@drawable/text_box">
 
+                <EditText
+                    android:id="@+id/editNovaSenha"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:background="@null"
+                    android:hint="Mínimo 8 caracteres"
+                    android:inputType="textPassword"
+                    android:padding="10dp"
+                    android:textColor="@color/white"
+                    android:textColorHint="#B3FFFFFF"
+                    android:textSize="12dp"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintEnd_toStartOf="@id/btnToggleNovaSenha"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="parent" />
+
+                <ImageButton
+                    android:id="@+id/btnToggleNovaSenha"
+                    android:layout_width="36dp"
+                    android:layout_height="36dp"
+                    android:layout_marginEnd="4dp"
+                    android:background="@null"
+                    android:contentDescription="Mostrar nova senha"
+                    android:padding="6dp"
+                    android:src="@drawable/ic_visibility_off"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintTop_toTopOf="parent"
+                    app:tint="@color/white" />
+
+            </androidx.constraintlayout.widget.ConstraintLayout>
+
+            <!-- Barra de força -->
             <LinearLayout
                 android:layout_width="280dp"
                 android:layout_height="wrap_content"
@@ -285,18 +314,45 @@
                 android:textColor="@color/white"
                 android:textSize="13dp" />
 
-            <EditText
-                android:id="@+id/editConfirmarSenha"
+            <!-- Confirmar senha com olhinho -->
+            <androidx.constraintlayout.widget.ConstraintLayout
+                android:id="@+id/containerConfirmarSenha"
                 android:layout_width="280dp"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="5dp"
-                android:background="@drawable/text_box"
-                android:hint="Repita a senha"
-                android:inputType="textPassword"
-                android:padding="10dp"
-                android:textColor="@color/white"
-                android:textColorHint="#B3FFFFFF"
-                android:textSize="12dp" />
+                android:background="@drawable/text_box">
+
+                <EditText
+                    android:id="@+id/editConfirmarSenha"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:background="@null"
+                    android:hint="Repita a senha"
+                    android:inputType="textPassword"
+                    android:padding="10dp"
+                    android:textColor="@color/white"
+                    android:textColorHint="#B3FFFFFF"
+                    android:textSize="12dp"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintEnd_toStartOf="@id/btnToggleConfirmarSenha"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="parent" />
+
+                <ImageButton
+                    android:id="@+id/btnToggleConfirmarSenha"
+                    android:layout_width="36dp"
+                    android:layout_height="36dp"
+                    android:layout_marginEnd="4dp"
+                    android:background="@null"
+                    android:contentDescription="Mostrar confirmação de senha"
+                    android:padding="6dp"
+                    android:src="@drawable/ic_visibility_off"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintTop_toTopOf="parent"
+                    app:tint="@color/white" />
+
+            </androidx.constraintlayout.widget.ConstraintLayout>
 
             <Button
                 android:id="@+id/btnRedefinirSenha"
@@ -308,6 +364,7 @@
                 android:textColor="@color/blue_navy"
                 android:textSize="14dp"
                 android:textStyle="bold" />
+
         </LinearLayout>
 
         <!-- Passo 3: Sucesso -->

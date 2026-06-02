@@ -40,8 +40,10 @@ public class TarefasAdapter extends RecyclerView.Adapter<TarefasAdapter.TarefaVi
         LembreteInstancia tarefa = lista.get(position);
 
         holder.checkbox.setOnCheckedChangeListener(null);
+        holder.checkbox.setEnabled(false);
         holder.checkbox.setText(tarefa.titulo + " - " + tarefa.getHorarioFormatado());
         holder.checkbox.setChecked(false);
+        holder.checkbox.setEnabled(true);
 
         holder.checkbox.setOnCheckedChangeListener((buttonView, isChecked) -> {
             if (isChecked) listener.onTarefaConcluida(tarefa);

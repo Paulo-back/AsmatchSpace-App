@@ -1,8 +1,16 @@
-import org.gradle.kotlin.dsl.wearApp
+import java.util.Properties
+import java.io.FileInputStream
 
 plugins {
     alias(libs.plugins.android.application)
     id("com.google.gms.google-services")
+}
+
+// Carrega as credenciais de assinatura (arquivo fora do versionamento)
+val keystorePropertiesFile = rootProject.file("keystore.properties")
+val keystoreProperties = Properties()
+if (keystorePropertiesFile.exists()) {
+    keystoreProperties.load(FileInputStream(keystorePropertiesFile))
 }
 
 android {
@@ -26,10 +34,12 @@ android {
 
     signingConfigs {
         create("release") {
-            storeFile = file("C:\\Users\\rosap\\asthmaspace.jks")
-            storePassword = "243436"
-            keyAlias = "asthmaspace"
-            keyPassword = "243436"
+            if (keystorePropertiesFile.exists()) {
+                storeFile = file(keystoreProperties["storeFile"] as String)
+                storePassword = keystoreProperties["storePassword"] as String
+                keyAlias = keystoreProperties["keyAlias"] as String
+                keyPassword = keystoreProperties["keyPassword"] as String
+            }
         }
     }
 
@@ -70,6 +80,7 @@ dependencies {
     implementation("com.google.android.gms:play-services-location:21.0.1")
     implementation("androidx.exifinterface:exifinterface:1.3.7")
     implementation("androidx.core:core-splashscreen:1.0.1")
+    implementation("androidx.security:security-crypto:1.1.0-alpha06")
 
     // Room
     implementation("androidx.room:room-runtime:2.6.1")

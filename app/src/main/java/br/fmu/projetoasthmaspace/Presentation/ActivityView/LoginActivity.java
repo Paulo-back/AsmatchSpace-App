@@ -16,6 +16,7 @@ import androidx.core.view.WindowInsetsCompat;
 import br.fmu.projetoasthmaspace.Core.Domain.Log.LoginRequest;
 import br.fmu.projetoasthmaspace.Core.Domain.Log.TokenResponse;
 import br.fmu.projetoasthmaspace.Core.Session.UserSessionManager;
+import br.fmu.projetoasthmaspace.Data.Service.Client.AuthInterceptor;
 import br.fmu.projetoasthmaspace.R;
 import br.fmu.projetoasthmaspace.Data.Service.Client.ApiClient;
 import br.fmu.projetoasthmaspace.Data.Service.Client.ApiService;
@@ -47,7 +48,15 @@ public class LoginActivity extends BaseActivity {
         binding = ActivityLoginBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
 
+        // ✅ Sessão expirada — avisa o usuário o motivo de estar aqui
+        if (getIntent().getBooleanExtra(AuthInterceptor.EXTRA_SESSAO_EXPIRADA, false)) {
+            Toast.makeText(this, "Sua sessão expirou. Faça login novamente.",
+                    Toast.LENGTH_LONG).show();
+        }
+
         binding.btnEntrar.setOnClickListener(v -> fazerLogin());
+        // ... resto igual, sem mudanças
+
 
         binding.btnCadastrar.setOnClickListener(v -> {
             Intent intent = new Intent(LoginActivity.this, CadastrarActivity.class);
@@ -94,6 +103,7 @@ public class LoginActivity extends BaseActivity {
                     UserSessionManager session = new UserSessionManager(LoginActivity.this);
                     session.clear();
                     session.saveToken(token);
+                    AuthInterceptor.resetSessaoExpirada(); //rearma o tratamento de 401
 
                     api.getMeuId().enqueue(new Callback<Long>() {
                         @Override

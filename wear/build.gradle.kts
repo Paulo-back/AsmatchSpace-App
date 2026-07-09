@@ -7,7 +7,7 @@ android {
     compileSdk = 35
 
     defaultConfig {
-        applicationId = "br.projetoasthmaspace.wear"
+        applicationId = "br.fmu.projetoasthmaspace"
         minSdk = 30
         targetSdk = 35
         versionCode = 1

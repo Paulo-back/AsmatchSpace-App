@@ -101,7 +101,7 @@ Este projeto é composto por **4 repositórios** que se integram:
 
 A documentação completa do projeto está disponível na pasta [`docs/`](docs/):
 
-- 📕 [Especificação do sistema (PDF, formato ABNT)](docs/especificacao.pdf)
+- 📕 [Especificação do sistema (PDF, formato ABNT)](docs/Asthma Space - Documento de Especificação.pdf)
 - 🏗️ [Decisões de arquitetura](docs/arquitetura.md)
 
 ---

@@ -114,7 +114,7 @@
                 android:textSize="13dp" />
         </LinearLayout>
 
-        <!-- Passo 1: Confirmação de identidade -->
+        <!-- Passo 1: Código de verificação -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -126,18 +126,19 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Confirmar identidade"
+                android:text="Verifique seu e-mail"
                 android:textColor="@color/white"
                 android:textSize="22dp"
                 android:textStyle="bold" />
 
             <TextView
+                android:id="@+id/textEmailEnviado"
                 android:layout_width="280dp"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="10dp"
                 android:layout_marginBottom="24dp"
                 android:alpha="0.75"
-                android:text="Confirme seus dados cadastrados para prosseguir."
+                android:text="Enviamos um código de 6 dígitos para o seu e-mail. Ele expira em 15 minutos."
                 android:textAlignment="center"
                 android:textColor="@color/white"
                 android:textSize="13dp" />
@@ -145,57 +146,44 @@
             <TextView
                 android:layout_width="280dp"
                 android:layout_height="wrap_content"
-                android:text="Data de nascimento"
+                android:text="Código de verificação"
                 android:textColor="@color/white"
                 android:textSize="13dp" />
 
             <EditText
-                android:id="@+id/editDataNascimento"
+                android:id="@+id/editCodigoRecuperacao"
                 android:layout_width="280dp"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="5dp"
                 android:background="@drawable/text_box"
-                android:hint="DD/MM/AAAA"
+                android:gravity="center"
+                android:hint="000000"
                 android:inputType="number"
-                android:maxLength="10"
+                android:letterSpacing="0.4"
+                android:maxLength="6"
                 android:padding="10dp"
                 android:textColor="@color/white"
                 android:textColorHint="#B3FFFFFF"
-                android:textSize="12dp" />
+                android:textSize="18dp"
+                android:textStyle="bold" />
 
-            <!-- CPF — visível só se o usuário tiver CPF cadastrado -->
             <TextView
-                android:id="@+id/labelCpf"
+                android:id="@+id/textReenviarCodigo"
                 android:layout_width="280dp"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="16dp"
-                android:text="CPF"
-                android:textColor="@color/white"
-                android:textSize="13dp"
-                android:visibility="gone" />
-
-            <EditText
-                android:id="@+id/editCpf"
-                android:layout_width="280dp"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="5dp"
-                android:background="@drawable/text_box"
-                android:hint="000.000.000-00"
-                android:inputType="number"
-                android:maxLength="11"
-                android:padding="10dp"
-                android:textColor="@color/white"
-                android:textColorHint="#B3FFFFFF"
-                android:textSize="12dp"
-                android:visibility="gone" />
+                android:layout_marginTop="10dp"
+                android:text="Não recebeu? Reenviar código"
+                android:textAlignment="center"
+                android:textColor="@color/turquoise_light"
+                android:textSize="13dp" />
 
             <Button
-                android:id="@+id/btnConfirmarIdentidade"
+                android:id="@+id/btnAvancarCodigo"
                 android:layout_width="280dp"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="20dp"
                 android:backgroundTint="@color/turquoise_light"
-                android:text="CONFIRMAR"
+                android:text="CONTINUAR"
                 android:textColor="@color/blue_navy"
                 android:textSize="14dp"
                 android:textStyle="bold" />

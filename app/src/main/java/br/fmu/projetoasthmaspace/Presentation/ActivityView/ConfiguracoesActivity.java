@@ -183,6 +183,36 @@ public class ConfiguracoesActivity extends BaseActivity  {
     }
 
     // ── EXCLUIR CONTA ─────────────────────────────────────────────
+    private void excluirConta() {
+        ApiService api = ApiClient.getApiService(this);
+        Long clienteId = session.getClienteId();
+
+        if (clienteId == -1L) {
+            // ID não está em cache — busca no servidor e tenta de novo
+            api.getMeuId().enqueue(new Callback<Long>() {
+                @Override
+                public void onResponse(Call<Long> call, Response<Long> response) {
+                    if (response.isSuccessful() && response.body() != null) {
+                        session.saveClienteId(response.body()); // repovoa o cache
+                        inativarNoServidor(response.body());
+                    } else {
+                        Toast.makeText(ConfiguracoesActivity.this,
+                                "Não foi possível identificar sua conta. Tente novamente.",
+                                Toast.LENGTH_SHORT).show();
+                    }
+                }
+                @Override
+                public void onFailure(Call<Long> call, Throwable t) {
+                    Toast.makeText(ConfiguracoesActivity.this,
+                            "Erro de conexão", Toast.LENGTH_SHORT).show();
+                }
+            });
+            return;
+        }
+
+        inativarNoServidor(clienteId);
+    }
+
     private void setupExcluirConta() {
         findViewById(R.id.btnExcluirConta).setOnClickListener(v ->
                 new AlertDialog.Builder(this, R.style.DialogTheme)
@@ -194,16 +224,8 @@ public class ConfiguracoesActivity extends BaseActivity  {
         );
     }
 
-    private void excluirConta() {
-        ApiService api = ApiClient.getApiService(this);
-        Long clienteId = session.getClienteId();
-
-        if (clienteId == -1L) {
-            Toast.makeText(this, "Erro: ID do cliente não encontrado", Toast.LENGTH_SHORT).show();
-            return;
-        }
-
-        api.inativarCliente(clienteId).enqueue(new Callback<Void>() {
+    private void inativarNoServidor(Long clienteId) {
+        ApiClient.getApiService(this).inativarCliente(clienteId).enqueue(new Callback<Void>() {
             @Override
             public void onResponse(Call<Void> call, Response<Void> response) {
                 if (response.isSuccessful()) {
@@ -215,7 +237,6 @@ public class ConfiguracoesActivity extends BaseActivity  {
                             "Erro ao excluir conta", Toast.LENGTH_SHORT).show();
                 }
             }
-
             @Override
             public void onFailure(Call<Void> call, Throwable t) {
                 Toast.makeText(ConfiguracoesActivity.this,

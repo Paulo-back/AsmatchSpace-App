@@ -5,10 +5,6 @@ import java.util.List;
 import br.fmu.projetoasthmaspace.Core.Domain.Lembretes.LembreteInstancia;
 import br.fmu.projetoasthmaspace.Core.Domain.Lembretes.LembreteTemplate;
 import br.fmu.projetoasthmaspace.Core.Domain.Lembretes.LembreteTemplateRequest;
-import br.fmu.projetoasthmaspace.Core.Domain.Log.ConsultaInfoResponse;
-import br.fmu.projetoasthmaspace.Core.Domain.Log.RedefinirSenhaRequest;
-import br.fmu.projetoasthmaspace.Core.Domain.Log.VerificarIdentidadeRequest;
-import br.fmu.projetoasthmaspace.Core.Domain.Log.VerificarIdentidadeResponse;
 import br.fmu.projetoasthmaspace.Core.Util.AlterarSenhaRequest;
 import br.fmu.projetoasthmaspace.Core.Util.AtualizarRequest;
 import br.fmu.projetoasthmaspace.Core.Domain.Cliente.ClienteResponse;
@@ -16,19 +12,18 @@ import br.fmu.projetoasthmaspace.Core.Domain.Cliente.DadosCadastroCliente;
 import br.fmu.projetoasthmaspace.Core.Domain.Cliente.DadosDetalhamentoCliente;
 import br.fmu.projetoasthmaspace.Core.Domain.Diario.DiarioRequest;
 import br.fmu.projetoasthmaspace.Core.Domain.Diario.DiarioResponse;
-import br.fmu.projetoasthmaspace.Core.Domain.Lembretes.LembreteRequest;
-import br.fmu.projetoasthmaspace.Core.Domain.Lembretes.LembreteResponse;
-import br.fmu.projetoasthmaspace.Core.Domain.Lembretes.LembreteUpdateRequest;
 import br.fmu.projetoasthmaspace.Core.Domain.Log.LoginRequest;
 import br.fmu.projetoasthmaspace.Core.Domain.Log.TokenResponse;
 import br.fmu.projetoasthmaspace.Core.Domain.Log.UsuarioResponse;
+import br.fmu.projetoasthmaspace.Core.Util.MensagemResponse;
 import br.fmu.projetoasthmaspace.Core.Util.PaginaResponse;
+import br.fmu.projetoasthmaspace.Core.Util.RedefinirSenhaComCodigoRequest;
+import br.fmu.projetoasthmaspace.Core.Util.SolicitarCodigoRequest;
 import okhttp3.ResponseBody;
 import retrofit2.Call;
 import retrofit2.http.Body;
 import retrofit2.http.DELETE;
 import retrofit2.http.GET;
-import retrofit2.http.Header;
 import retrofit2.http.PATCH;
 import retrofit2.http.POST;
 import retrofit2.http.PUT;
@@ -134,14 +129,13 @@ public interface ApiService {
 
     // -------- Redefinir Senha --------
 
-    @GET("auth/recuperar-senha/info")
-    Call<ConsultaInfoResponse> consultarInfoRecuperacao(@Query("email") String email);
+    // -------- Recuperar Senha (esqueci a senha) --------
 
-    @POST("auth/recuperar-senha/verificar")
-    Call<VerificarIdentidadeResponse> verificarIdentidade(@Body VerificarIdentidadeRequest req);
+    @POST("auth/recuperar-senha/solicitar")
+    Call<MensagemResponse> solicitarCodigoRecuperacao(@Body SolicitarCodigoRequest req);
 
     @POST("auth/recuperar-senha/redefinir")
-    Call<Void> redefinirSenha(@Body RedefinirSenhaRequest req);
+    Call<MensagemResponse> redefinirSenhaComCodigo(@Body RedefinirSenhaComCodigoRequest req);
 
 
 

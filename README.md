@@ -9,7 +9,7 @@
 [![PostgreSQL](https://img.shields.io/badge/Database-PostgreSQL-4169E1?logo=postgresql&logoColor=white)](#)
 [![Wear OS](https://img.shields.io/badge/Wear%20OS-Integrado-4285F4?logo=wearos&logoColor=white)](#)
 
-[📱 Download do APK](https://github.com/SEU_USUARIO/asthma-space-app/releases/latest) · [🌐 Landing Page](https://asthma-space-web-page.vercel.app/) · [📄 Documentação](docs/)
+[📱 Download do APK](https://github.com/Paulo-back/AsmatchSpace-App/releases/latest/download/asthma-space.apk) · [🌐 Landing Page](https://asthma-space-web-page.vercel.app/) · [📄 Documentação](docs/Asthma_Space_especificacao.pdf)
 
 </div>
 
@@ -25,7 +25,7 @@ Este projeto é composto por **4 repositórios** que se integram:
 
 | Repositório | Descrição | Stack |
 |---|---|---|
-| 📱 **[App Android](https://github.com/SEU_USUARIO/asthma-space-app)** *(este repo)* | Aplicativo mobile para pacientes | Java, Room, Retrofit2, WorkManager |
+| 📱 **[App Android](https://github.com/Paulo-back/AsmatchSpace-App/releases/tag/v1.0.0)** *(este repo)* | Aplicativo mobile para pacientes | Java, Room, Retrofit2, WorkManager |
 | ⚙️ **[Backend API](https://github.com/Paulo-back/AsmatchSpace)** | API REST com autenticação e regras de negócio | Spring Boot, Spring Security, JWT, Flyway |
 | 🖥️ **[Painel Admin](https://github.com/Paulo-back/Asthma_Space-panel)** | Painel web administrativo com controle de acesso por perfil | HTML, CSS, JavaScript |
 | 🌐 **[Landing Page](https://github.com/Paulo-back/AsthmaSpace_webPage)** | Página de apresentação do aplicativo | HTML, CSS, JavaScript |
@@ -81,11 +81,11 @@ Este projeto é composto por **4 repositórios** que se integram:
 
 **Backend**
 - API REST com **Spring Boot** + **Spring Security** (JWT + BCrypt)
+- Banco de dados **PostgreSQL** hospedado no **Neon**
 - Migrações versionadas com **Flyway**
-- Controle de acesso por perfil (`ADMIN`, `MEDICO`, `USER`)
+- Controle de acesso por perfil (`ADMIN`, `USER`)
 - Queries otimizadas em lote para respeitar limites do free tier
-- Deploy no **Render** com keep-alive automatizado
-
+- Deploy no **Render** com keep-alive automatizado (cron a cada 5 min)
 ---
 
 ## 📸 Screenshots
@@ -115,7 +115,7 @@ A documentação completa do projeto está disponível na pasta [`docs/`](docs/)
 
 ```bash
 # Clone o repositório
-git clone https://github.com/SEU_USUARIO/asthma-space-app.git
+git clone https://github.com/Paulo-back/AsmatchSpace-App.git
 
 # Abra no Android Studio e sincronize o Gradle
 # Configure o local.properties com sua chave da API OpenWeather:
@@ -124,7 +124,7 @@ git clone https://github.com/SEU_USUARIO/asthma-space-app.git
 # Execute no dispositivo/emulador
 ```
 
-> **Nota:** o app consome a API hospedada no Render (free tier). A primeira requisição após inatividade pode levar alguns segundos devido ao cold start do servidor.
+> **Nota:** a API roda no Render (free tier), mantida ativa por keep-alive automatizado (cron a cada 5 min) — cold starts são raros, mas possíveis.
 
 ---
 

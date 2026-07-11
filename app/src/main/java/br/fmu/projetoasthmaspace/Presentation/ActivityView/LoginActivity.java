@@ -3,6 +3,10 @@ package br.fmu.projetoasthmaspace.Presentation.ActivityView;
 import android.content.Intent;
 import android.os.Bundle;
 
+import android.text.method.HideReturnsTransformationMethod;
+import android.text.method.PasswordTransformationMethod;
+import android.widget.EditText;
+import android.widget.ImageButton;
 import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
@@ -48,15 +52,13 @@ public class LoginActivity extends BaseActivity {
         binding = ActivityLoginBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
 
-        // ✅ Sessão expirada — avisa o usuário o motivo de estar aqui
+
         if (getIntent().getBooleanExtra(AuthInterceptor.EXTRA_SESSAO_EXPIRADA, false)) {
             Toast.makeText(this, "Sua sessão expirou. Faça login novamente.",
                     Toast.LENGTH_LONG).show();
         }
 
         binding.btnEntrar.setOnClickListener(v -> fazerLogin());
-        // ... resto igual, sem mudanças
-
 
         binding.btnCadastrar.setOnClickListener(v -> {
             Intent intent = new Intent(LoginActivity.this, CadastrarActivity.class);
@@ -71,6 +73,31 @@ public class LoginActivity extends BaseActivity {
             Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
             return insets;
+        });
+
+        final boolean[] senhaVisivel = {false};
+
+        binding.btnToggleSenha.setOnClickListener(v -> {
+            senhaVisivel[0] = !senhaVisivel[0];
+            binding.editTextSenha.setTransformationMethod(senhaVisivel[0]
+                    ? HideReturnsTransformationMethod.getInstance()
+                    : PasswordTransformationMethod.getInstance());
+            binding.btnToggleSenha.setImageResource(senhaVisivel[0]
+                    ? R.drawable.ic_visibility
+                    : R.drawable.ic_visibility_off);
+            binding.editTextSenha.setSelection(binding.editTextSenha.getText().length());
+        });
+
+        // 📧 Suporte — abre o app de e-mail com destinatário preenchido
+        binding.textSuporte.setOnClickListener(v -> {
+            Intent intent = new Intent(Intent.ACTION_SENDTO);
+            intent.setData(android.net.Uri.parse("mailto:asthmaspace.noreply@gmail.com"
+                    + "?subject=" + android.net.Uri.encode("Suporte - Asthma Space")));
+            try {
+                startActivity(intent);
+            } catch (android.content.ActivityNotFoundException e) {
+                Toast.makeText(this, "Nenhum app de e-mail encontrado", Toast.LENGTH_SHORT).show();
+            }
         });
     }
 
@@ -119,7 +146,6 @@ public class LoginActivity extends BaseActivity {
                     Toast.makeText(LoginActivity.this, "Login realizado com sucesso!", Toast.LENGTH_SHORT).show();
                     startActivity(new Intent(LoginActivity.this, MainActivity.class));
                     finish();
-                    // ℹ️ Não precisa reabilitar: a Activity é destruída com finish()
 
                 } else {
                     String mensagemErro = "Email ou senha incorretos";
@@ -133,14 +159,15 @@ public class LoginActivity extends BaseActivity {
                     } catch (Exception ignored) {}
 
                     Toast.makeText(LoginActivity.this, mensagemErro, Toast.LENGTH_LONG).show();
-                    setCarregando(false); // 🔓 Reabilita só em caso de erro
+                    setCarregando(false);
                 }
             }
+
 
             @Override
             public void onFailure(Call<TokenResponse> call, Throwable t) {
                 Toast.makeText(LoginActivity.this, "Erro de conexão: " + t.getMessage(), Toast.LENGTH_LONG).show();
-                setCarregando(false); // 🔓 Reabilita em caso de falha de rede
+                setCarregando(false);
             }
         });
     }

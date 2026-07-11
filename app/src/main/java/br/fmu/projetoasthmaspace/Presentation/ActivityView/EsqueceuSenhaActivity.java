@@ -16,10 +16,9 @@ import android.widget.ViewFlipper;
 import br.fmu.projetoasthmaspace.R;
 import br.fmu.projetoasthmaspace.Data.Service.Client.ApiClient;
 import br.fmu.projetoasthmaspace.Data.Service.Client.ApiService;
-import br.fmu.projetoasthmaspace.Core.Domain.Log.ConsultaInfoResponse;
-import br.fmu.projetoasthmaspace.Core.Domain.Log.VerificarIdentidadeRequest;
-import br.fmu.projetoasthmaspace.Core.Domain.Log.VerificarIdentidadeResponse;
-import br.fmu.projetoasthmaspace.Core.Domain.Log.RedefinirSenhaRequest;
+import br.fmu.projetoasthmaspace.Core.Util.SolicitarCodigoRequest;
+import br.fmu.projetoasthmaspace.Core.Util.RedefinirSenhaComCodigoRequest;
+import br.fmu.projetoasthmaspace.Core.Util.MensagemResponse;
 
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -29,8 +28,8 @@ public class EsqueceuSenhaActivity extends BaseActivity {
 
     private ViewFlipper viewFlipper;
     private EditText editEmailRecuperacao;
-    private EditText editDataNascimento, editCpf;
-    private TextView labelCpf;
+    private EditText editCodigoRecuperacao;
+    private TextView textEmailEnviado;
     private EditText editNovaSenha, editConfirmarSenha;
     private TextView textForcaSenha;
     private View forca1, forca2, forca3, forca4;
@@ -40,8 +39,6 @@ public class EsqueceuSenhaActivity extends BaseActivity {
     private boolean confirmarSenhaVisivel = false;
 
     private String emailRecuperacao;
-    private String tokenRedefinicao;
-    private boolean clienteTemCpf = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -49,7 +46,6 @@ public class EsqueceuSenhaActivity extends BaseActivity {
         setContentView(R.layout.activity_esqueceu_senha);
         bindViews();
         configurarBotoes();
-        configurarMascaraData();
         configurarForcaSenha();
         configurarTogglesSenha();
     }
@@ -57,9 +53,8 @@ public class EsqueceuSenhaActivity extends BaseActivity {
     private void bindViews() {
         viewFlipper              = findViewById(R.id.viewFlipper);
         editEmailRecuperacao     = findViewById(R.id.editEmailRecuperacao);
-        editDataNascimento       = findViewById(R.id.editDataNascimento);
-        editCpf                  = findViewById(R.id.editCpf);
-        labelCpf                 = findViewById(R.id.labelCpf);
+        editCodigoRecuperacao    = findViewById(R.id.editCodigoRecuperacao);
+        textEmailEnviado         = findViewById(R.id.textEmailEnviado);
         editNovaSenha            = findViewById(R.id.editNovaSenha);
         editConfirmarSenha       = findViewById(R.id.editConfirmarSenha);
         textForcaSenha           = findViewById(R.id.textForcaSenha);
@@ -72,10 +67,11 @@ public class EsqueceuSenhaActivity extends BaseActivity {
     }
 
     private void configurarBotoes() {
-        findViewById(R.id.btnAvancarEmail).setOnClickListener(v -> avancarEmail());
+        findViewById(R.id.btnAvancarEmail).setOnClickListener(v -> solicitarCodigo());
         findViewById(R.id.textVoltarLogin).setOnClickListener(v -> finish());
-        findViewById(R.id.btnConfirmarIdentidade).setOnClickListener(v -> confirmarIdentidade());
-        findViewById(R.id.textVoltarEmail).setOnClickListener(v -> viewFlipper.showPrevious());
+        findViewById(R.id.btnAvancarCodigo).setOnClickListener(v -> avancarCodigo());
+        findViewById(R.id.textVoltarEmail).setOnClickListener(v -> viewFlipper.setDisplayedChild(0));
+        findViewById(R.id.textReenviarCodigo).setOnClickListener(v -> reenviarCodigo());
         findViewById(R.id.btnRedefinirSenha).setOnClickListener(v -> redefinirSenha());
         findViewById(R.id.btnIrParaLogin).setOnClickListener(v -> irParaLogin());
     }
@@ -104,8 +100,8 @@ public class EsqueceuSenhaActivity extends BaseActivity {
         });
     }
 
-    // ---------------------------------------------------------------- passo 0
-    private void avancarEmail() {
+    // ---------------------------------------------------------------- passo 0: e-mail
+    private void solicitarCodigo() {
         String email = editEmailRecuperacao.getText().toString().trim();
         if (email.isEmpty() || !android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
             editEmailRecuperacao.setError("E-mail inválido");
@@ -114,85 +110,80 @@ public class EsqueceuSenhaActivity extends BaseActivity {
         emailRecuperacao = email;
 
         ApiService api = ApiClient.getApiService(this);
-        api.consultarInfoRecuperacao(email).enqueue(new Callback<ConsultaInfoResponse>() {
-            @Override
-            public void onResponse(Call<ConsultaInfoResponse> call, Response<ConsultaInfoResponse> response) {
-                if (response.isSuccessful() && response.body() != null) {
-                    clienteTemCpf = response.body().isTemCpf();
-                    int vis = clienteTemCpf ? View.VISIBLE : View.GONE;
-                    labelCpf.setVisibility(vis);
-                    editCpf.setVisibility(vis);
-                    viewFlipper.showNext();
-                } else {
-                    Toast.makeText(EsqueceuSenhaActivity.this,
-                            "Não foi possível localizar este e-mail.", Toast.LENGTH_SHORT).show();
-                }
-            }
-            @Override
-            public void onFailure(Call<ConsultaInfoResponse> call, Throwable t) {
-                Toast.makeText(EsqueceuSenhaActivity.this,
-                        "Erro de conexão. Tente novamente.", Toast.LENGTH_SHORT).show();
-            }
-        });
+        api.solicitarCodigoRecuperacao(new SolicitarCodigoRequest(email))
+                .enqueue(new Callback<MensagemResponse>() {
+                    @Override
+                    public void onResponse(Call<MensagemResponse> call, Response<MensagemResponse> response) {
+                        if (response.isSuccessful()) {
+                            if (textEmailEnviado != null) {
+                                textEmailEnviado.setText("Enviamos um código de 6 dígitos para "
+                                        + emailRecuperacao + ". Ele expira em 15 minutos.");
+                            }
+                            editCodigoRecuperacao.setText("");
+                            viewFlipper.setDisplayedChild(1);
+                        } else if (response.code() == 429) {
+                            Toast.makeText(EsqueceuSenhaActivity.this,
+                                    "Aguarde um minuto antes de solicitar um novo código.",
+                                    Toast.LENGTH_SHORT).show();
+                        } else {
+                            Toast.makeText(EsqueceuSenhaActivity.this,
+                                    "Não foi possível enviar o código. Tente novamente.",
+                                    Toast.LENGTH_SHORT).show();
+                        }
+                    }
+                    @Override
+                    public void onFailure(Call<MensagemResponse> call, Throwable t) {
+                        Toast.makeText(EsqueceuSenhaActivity.this,
+                                "Erro de conexão. Tente novamente.", Toast.LENGTH_SHORT).show();
+                    }
+                });
     }
 
-    // ---------------------------------------------------------------- passo 1
-    private void confirmarIdentidade() {
-        String dataStr = editDataNascimento.getText().toString().trim();
-
-        if (dataStr.length() != 10) {
-            editDataNascimento.setError("Informe a data completa (DD/MM/AAAA)");
+    // ---------------------------------------------------------------- passo 1: código
+    private void avancarCodigo() {
+        String codigo = editCodigoRecuperacao.getText().toString().trim();
+        if (!codigo.matches("\\d{6}")) {
+            editCodigoRecuperacao.setError("Informe o código de 6 dígitos");
             return;
         }
+        // O código só é validado de fato no /redefinir; aqui apenas avançamos
+        viewFlipper.setDisplayedChild(2);
+    }
 
-        String dataFormatada;
-        try {
-            String[] partes = dataStr.split("/");
-            if (partes.length != 3) throw new Exception("formato inválido");
-            dataFormatada = partes[2] + "-" + partes[1] + "-" + partes[0];
-        } catch (Exception e) {
-            editDataNascimento.setError("Formato inválido. Use DD/MM/AAAA");
+    private void reenviarCodigo() {
+        if (emailRecuperacao == null) {
+            viewFlipper.setDisplayedChild(0);
             return;
         }
-
-        if (clienteTemCpf) {
-            String cpf = editCpf.getText().toString().replaceAll("[^0-9]", "");
-            if (cpf.length() != 11) {
-                editCpf.setError("CPF inválido");
-                return;
-            }
-        }
-
-        VerificarIdentidadeRequest req = new VerificarIdentidadeRequest();
-        req.setEmail(emailRecuperacao);
-        req.setDataNascimento(dataFormatada);
-        if (clienteTemCpf) {
-            req.setCpf(editCpf.getText().toString().replaceAll("[^0-9]", ""));
-        }
-
         ApiService api = ApiClient.getApiService(this);
-        api.verificarIdentidade(req).enqueue(new Callback<VerificarIdentidadeResponse>() {
-            @Override
-            public void onResponse(Call<VerificarIdentidadeResponse> call,
-                                   Response<VerificarIdentidadeResponse> response) {
-                if (response.isSuccessful() && response.body() != null) {
-                    tokenRedefinicao = response.body().getTokenRedefinicao();
-                    viewFlipper.showNext();
-                } else {
-                    Toast.makeText(EsqueceuSenhaActivity.this,
-                            "Dados não conferem com nosso cadastro.", Toast.LENGTH_SHORT).show();
-                }
-            }
-            @Override
-            public void onFailure(Call<VerificarIdentidadeResponse> call, Throwable t) {
-                Toast.makeText(EsqueceuSenhaActivity.this,
-                        "Erro de conexão. Tente novamente.", Toast.LENGTH_SHORT).show();
-            }
-        });
+        api.solicitarCodigoRecuperacao(new SolicitarCodigoRequest(emailRecuperacao))
+                .enqueue(new Callback<MensagemResponse>() {
+                    @Override
+                    public void onResponse(Call<MensagemResponse> call, Response<MensagemResponse> response) {
+                        if (response.isSuccessful()) {
+                            Toast.makeText(EsqueceuSenhaActivity.this,
+                                    "Novo código enviado!", Toast.LENGTH_SHORT).show();
+                        } else if (response.code() == 429) {
+                            Toast.makeText(EsqueceuSenhaActivity.this,
+                                    "Aguarde um minuto antes de solicitar um novo código.",
+                                    Toast.LENGTH_SHORT).show();
+                        } else {
+                            Toast.makeText(EsqueceuSenhaActivity.this,
+                                    "Não foi possível reenviar. Tente novamente.",
+                                    Toast.LENGTH_SHORT).show();
+                        }
+                    }
+                    @Override
+                    public void onFailure(Call<MensagemResponse> call, Throwable t) {
+                        Toast.makeText(EsqueceuSenhaActivity.this,
+                                "Erro de conexão. Tente novamente.", Toast.LENGTH_SHORT).show();
+                    }
+                });
     }
 
-    // ---------------------------------------------------------------- passo 2
+    // ---------------------------------------------------------------- passo 2: nova senha
     private void redefinirSenha() {
+        String codigo   = editCodigoRecuperacao.getText().toString().trim();
         String nova     = editNovaSenha.getText().toString();
         String confirma = editConfirmarSenha.getText().toString();
 
@@ -205,61 +196,36 @@ public class EsqueceuSenhaActivity extends BaseActivity {
             return;
         }
 
-        RedefinirSenhaRequest req = new RedefinirSenhaRequest();
-        req.setTokenRedefinicao(tokenRedefinicao);
-        req.setNovaSenha(nova);
+        RedefinirSenhaComCodigoRequest req =
+                new RedefinirSenhaComCodigoRequest(emailRecuperacao, codigo, nova);
 
         ApiService api = ApiClient.getApiService(this);
-        api.redefinirSenha(req).enqueue(new Callback<Void>() {
+        api.redefinirSenhaComCodigo(req).enqueue(new Callback<MensagemResponse>() {
             @Override
-            public void onResponse(Call<Void> call, Response<Void> response) {
+            public void onResponse(Call<MensagemResponse> call, Response<MensagemResponse> response) {
                 if (response.isSuccessful()) {
-                    viewFlipper.showNext();
+                    viewFlipper.setDisplayedChild(3);
                 } else {
                     Toast.makeText(EsqueceuSenhaActivity.this,
-                            "Token expirado. Reinicie o processo.", Toast.LENGTH_SHORT).show();
-                    viewFlipper.setDisplayedChild(0);
+                            "Código inválido ou expirado. Verifique e tente novamente.",
+                            Toast.LENGTH_SHORT).show();
+                    viewFlipper.setDisplayedChild(1);
                 }
             }
             @Override
-            public void onFailure(Call<Void> call, Throwable t) {
+            public void onFailure(Call<MensagemResponse> call, Throwable t) {
                 Toast.makeText(EsqueceuSenhaActivity.this,
                         "Erro de conexão. Tente novamente.", Toast.LENGTH_SHORT).show();
             }
         });
     }
 
-    // ---------------------------------------------------------------- passo 3
+    // ---------------------------------------------------------------- passo 3: sucesso
     private void irParaLogin() {
         Intent intent = new Intent(this, LoginActivity.class);
         intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
         startActivity(intent);
         finish();
-    }
-
-    // ---------------------------------------------------- máscara DD/MM/AAAA
-    private void configurarMascaraData() {
-        editDataNascimento.addTextChangedListener(new TextWatcher() {
-            private boolean isUpdating = false;
-
-            @Override public void beforeTextChanged(CharSequence s, int st, int c, int a) {}
-            @Override public void onTextChanged(CharSequence s, int st, int b, int c) {}
-
-            @Override
-            public void afterTextChanged(Editable s) {
-                if (isUpdating) return;
-                String digits = s.toString().replaceAll("[^0-9]", "");
-                StringBuilder formatted = new StringBuilder();
-                for (int i = 0; i < digits.length() && i < 8; i++) {
-                    if (i == 2 || i == 4) formatted.append("/");
-                    formatted.append(digits.charAt(i));
-                }
-                isUpdating = true;
-                editDataNascimento.setText(formatted.toString());
-                editDataNascimento.setSelection(formatted.length());
-                isUpdating = false;
-            }
-        });
     }
 
     // --------------------------------------------------------- força da senha

@@ -35,4 +35,6 @@ public interface NotificacaoDao {
 
     @Query("DELETE FROM notificacoes")
     void deletarTodas();
+    @Query("DELETE FROM notificacoes WHERE templateId = :templateId")
+    void deletarPorTemplate(long templateId);
 }

@@ -7,6 +7,7 @@ import android.graphics.BitmapFactory;
 import android.graphics.BitmapShader;
 import android.graphics.Canvas;
 import android.graphics.Paint;
+import android.graphics.Rect;
 import android.graphics.Shader;
 import android.graphics.drawable.BitmapDrawable;
 import android.net.Uri;
@@ -16,8 +17,12 @@ import android.os.PowerManager;
 import android.provider.Settings;
 import android.util.Log;
 import android.view.View;
+import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.graphics.Insets;
+import androidx.core.view.ViewCompat;
+import androidx.core.view.WindowInsetsCompat;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentTransaction;
@@ -83,6 +88,29 @@ public class MainActivity extends AppCompatActivity implements NavegacaoCallback
 
         binding = ActivityMainBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
+        ViewCompat.setOnApplyWindowInsetsListener(binding.getRoot(), (v, insets) -> {
+            Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
+            Insets ime = insets.getInsets(WindowInsetsCompat.Type.ime());
+            boolean tecladoAberto = ime.bottom > 0;
+
+            // 1) Esconde a bottom nav enquanto o teclado está aberto — libera ~150px
+            binding.bottomNavigationView.setVisibility(
+                    tecladoAberto ? View.GONE : View.VISIBLE);
+
+            v.setPadding(systemBars.left, systemBars.top, systemBars.right,
+                    Math.max(systemBars.bottom, ime.bottom));
+
+            // 2) Rola até o campo focado depois que o layout se ajustar
+            if (tecladoAberto) {
+                View foco = getCurrentFocus();
+                if (foco != null) {
+                    foco.post(() -> foco.requestRectangleOnScreen(
+                            new Rect(0, 0, foco.getWidth(), foco.getHeight()), false));
+                }
+            }
+
+            return WindowInsetsCompat.CONSUMED;
+        });
         solicitarIgnorarOtimizacaoBateria();
         tratarIntentDeNotificacao(getIntent());
 

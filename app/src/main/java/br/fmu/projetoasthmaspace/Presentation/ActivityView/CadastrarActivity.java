@@ -15,6 +15,7 @@ import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
+import br.fmu.projetoasthmaspace.Core.Util.ValidadorDataNascimento;
 import br.fmu.projetoasthmaspace.R;
 import br.fmu.projetoasthmaspace.databinding.ActivityCadastrarBinding;
 
@@ -54,9 +55,8 @@ public class CadastrarActivity extends BaseActivity implements AdapterView.OnIte
             String sexo           = binding.spinnerSexo.getSelectedItem().toString();
 
             if (nomeCompleto.isEmpty() || email.isEmpty() || senha.isEmpty() ||
-                    confirmarSenha.isEmpty() || dataNascimento.length() < 10 || sexo.isEmpty()) {
-                Toast.makeText(this, "Preencha todos os campos obrigatórios com *.", Toast.LENGTH_SHORT).show();
-                return;
+                    confirmarSenha.isEmpty() || dataNascimento.isEmpty() || sexo.isEmpty()) {
+
             }
 
             if (sexo.equals("Selecione")) {
@@ -72,15 +72,18 @@ public class CadastrarActivity extends BaseActivity implements AdapterView.OnIte
                 return;
             }
 
-            // Converte DD/MM/AAAA → yyyy-MM-dd para o backend
-            String dataFormatada;
-            try {
-                String[] partes = dataNascimento.split("/");
-                dataFormatada = partes[2] + "-" + partes[1] + "-" + partes[0];
-            } catch (Exception e) {
-                Toast.makeText(this, "Data de nascimento inválida.", Toast.LENGTH_SHORT).show();
+            // Valida (data real, não futura, máx. 120 anos)
+            String erroData = ValidadorDataNascimento.validar(dataNascimento);
+            if (erroData != null) {
+                binding.editTextDataNascimento.setError(erroData);
+                binding.editTextDataNascimento.requestFocus();
+                Toast.makeText(this, erroData, Toast.LENGTH_SHORT).show();
                 return;
             }
+
+            // Converte DD/MM/AAAA → yyyy-MM-dd para o backend
+            String[] partes = dataNascimento.split("/");
+            String dataFormatada = partes[2] + "-" + partes[1] + "-" + partes[0];
 
             // Envia apenas a senha original, não a confirmação
             Intent intent = new Intent(CadastrarActivity.this, InfAdicionaisActivity.class);

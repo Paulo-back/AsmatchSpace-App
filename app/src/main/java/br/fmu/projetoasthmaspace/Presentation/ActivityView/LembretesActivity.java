@@ -201,7 +201,8 @@ public class LembretesActivity extends Fragment {
                     Toast.makeText(getContext(), "Lembrete salvo!", Toast.LENGTH_SHORT).show();
                     // ✅ Fora do callback de localização — templateId disponível
                     agendarLembrete(hora, minuto, req.dataInicio, titulo,
-                            "Lembrete programado!", req.tipoRecorrencia, criado.id);
+                            "Lembrete programado!", req.tipoRecorrencia, criado.id,
+                            req.dataFim);
                     dadosCarregados = false;
                     carregarInstanciasPorPeriodo();
                 } else {
@@ -216,12 +217,17 @@ public class LembretesActivity extends Fragment {
         });
     }
 
-    private void atualizarTemplate(Long templateId, LembreteTemplateRequest req) {
+    private void atualizarTemplate(Long templateId, LembreteTemplateRequest req,
+                                   int hora, int minuto) {
         api.atualizarTemplate(templateId, req).enqueue(new Callback<LembreteTemplate>() {
             @Override
             public void onResponse(Call<LembreteTemplate> call, Response<LembreteTemplate> response) {
                 if (!isAdded()) return;
                 if (response.isSuccessful()) {
+                    cancelarAlarmeLocal(templateId);
+                    agendarLembrete(hora, minuto, req.dataInicio, req.titulo,
+                            "Lembrete programado!", req.tipoRecorrencia, templateId,
+                            req.dataFim);
                     Toast.makeText(getContext(), "Lembrete atualizado!", Toast.LENGTH_SHORT).show();
                     dadosCarregados = false;
                     carregarInstanciasPorPeriodo();
@@ -243,6 +249,8 @@ public class LembretesActivity extends Fragment {
             public void onResponse(Call<Void> call, Response<Void> response) {
                 if (!isAdded()) return;
                 if (response.isSuccessful()) {
+                    cancelarAlarmeLocal(templateId);
+                    limparHistoricoNotificacoes(templateId);
                     Toast.makeText(getContext(), "Lembrete excluído!", Toast.LENGTH_SHORT).show();
                     dadosCarregados = false;
                     carregarInstanciasPorPeriodo();
@@ -279,12 +287,13 @@ public class LembretesActivity extends Fragment {
         });
     }
 
-    private void deletarInstanciaEFuturas(Long instanciaId) {
+    private void deletarInstanciaEFuturas(Long instanciaId, Long templateId) {
         api.deletarInstanciaEFuturas(instanciaId).enqueue(new Callback<Void>() {
             @Override
             public void onResponse(Call<Void> call, Response<Void> response) {
                 if (!isAdded()) return;
                 if (response.isSuccessful()) {
+                    if (templateId != null) cancelarAlarmeLocal(templateId);
                     Toast.makeText(getContext(), "Este e próximos removidos!", Toast.LENGTH_SHORT).show();
                     dadosCarregados = false;
                     carregarInstanciasPorPeriodo();
@@ -508,7 +517,8 @@ public class LembretesActivity extends Fragment {
                         dataFimSelecionada[0], tipoRecorrencia[0], diasSemana[0]);
 
                 if (isEditing) {
-                    atualizarTemplate(instanciaExistente.templateId, req);
+                    atualizarTemplate(instanciaExistente.templateId, req,
+                            horaSelecionada[0], minutoSelecionado[0]);
                 } else {
                     criarTemplate(req, horaSelecionada[0], minutoSelecionado[0], titulo);
                 }
@@ -613,6 +623,7 @@ public class LembretesActivity extends Fragment {
                             ContextCompat.getColor(getContext(), R.color.red_dark),
                             PorterDuff.Mode.SRC_IN);
                     deleteItemIcon.setOnClickListener(v -> showDeleteConfirmationDialog(inst));
+
 
                     if (!inst.isConcluido()) {
                         concluirItemIcon.setVisibility(View.VISIBLE);
@@ -738,7 +749,7 @@ public class LembretesActivity extends Fragment {
                 .setPositiveButton("Excluir", (dialog, w) -> {
                     switch (opcaoSelecionada[0]) {
                         case 0: deletarInstancia(inst.instanciaId);        break;
-                        case 1: deletarInstanciaEFuturas(inst.instanciaId); break;
+                        case 1: deletarInstanciaEFuturas(inst.instanciaId, inst.templateId); break;
                         case 2: deletarTemplate(inst.templateId);           break;
                     }
                 })
@@ -787,7 +798,8 @@ public class LembretesActivity extends Fragment {
 
     private void agendarLembrete(int hora, int minuto, String dataStr,
                                  String titulo, String mensagem,
-                                 String tipoRecorrencia, long templateId) {
+                                 String tipoRecorrencia, long templateId,
+                                 @Nullable String dataFim) {
         Calendar c = Calendar.getInstance(TimeZone.getTimeZone("America/Sao_Paulo"));
         try {
             SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
@@ -823,6 +835,7 @@ public class LembretesActivity extends Fragment {
         intent.putExtra("recorrencia", tipoRecorrencia);
         intent.putExtra("requestCode", requestCode);
         intent.putExtra("templateId", templateId); // ✅ passado explicitamente
+        intent.putExtra("dataFim", dataFim); // yyyy-MM-dd ou null
 
         PendingIntent pendingIntent = PendingIntent.getBroadcast(
                 getContext(), requestCode, intent,
@@ -858,6 +871,37 @@ public class LembretesActivity extends Fragment {
             alarmManager.setExactAndAllowWhileIdle(
                     AlarmManager.RTC_WAKEUP, c.getTimeInMillis(), pendingIntent);
         }
+    }
+
+    private void cancelarAlarmeLocal(long templateId) {
+        Context ctx = getContext();
+        if (ctx == null) return;
+
+        int requestCode = (int) templateId;
+
+        Intent intent = new Intent(ctx, LembreteReceiver.class);
+        PendingIntent pendingIntent = PendingIntent.getBroadcast(
+                ctx, requestCode, intent,
+                PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
+
+        AlarmManager alarmManager = (AlarmManager) ctx.getSystemService(Context.ALARM_SERVICE);
+        if (alarmManager != null) alarmManager.cancel(pendingIntent);
+        pendingIntent.cancel();
+
+        // Remove da persistência de reboot — senão o BootReceiver ressuscita o alarme
+        ctx.getSharedPreferences("lembretes_reboot", Context.MODE_PRIVATE)
+                .edit().remove("lembrete_" + requestCode).apply();
+
+        Log.d("Lembretes", "Alarme cancelado — templateId=" + templateId);
+    }
+
+    private void limparHistoricoNotificacoes(long templateId) {
+        Context ctx = getContext();
+        if (ctx == null) return;
+        new Thread(() ->
+                br.fmu.projetoasthmaspace.Data.Local.NotificacaoDatabase
+                        .getInstance(ctx).dao().deletarPorTemplate(templateId)
+        ).start();
     }
 
 //método separado chamado uma única vez via flag SharedPreferences

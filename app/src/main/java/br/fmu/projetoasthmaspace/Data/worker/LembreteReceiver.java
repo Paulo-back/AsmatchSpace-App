@@ -14,8 +14,10 @@ import android.util.Log;
 
 import androidx.core.app.NotificationCompat;
 
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
+import java.util.Date;
 import java.util.Locale;
 import java.util.TimeZone;
 
@@ -38,6 +40,7 @@ public class LembreteReceiver extends BroadcastReceiver {
         int    hora        = intent.getIntExtra("hora", -1);
         int    minuto      = intent.getIntExtra("minuto", -1);
         String recorrencia = intent.getStringExtra("recorrencia");
+        String dataFim = intent.getStringExtra("dataFim");
         long   templateId  = intent.getLongExtra("templateId", -1L); // ✅
         int    requestCode = intent.getIntExtra("requestCode",
                 Math.abs((titulo + "_" + hora + "_" + minuto).hashCode()));
@@ -49,12 +52,13 @@ public class LembreteReceiver extends BroadcastReceiver {
         String dataHora = new SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault())
                 .format(Calendar.getInstance(TimeZone.getTimeZone("America/Sao_Paulo")).getTime());
         NotificacaoEntity notif = new NotificacaoEntity(titulo, mensagem, dataHora, "LEMBRETE");
+        notif.templateId = templateId;
         new Thread(() ->
                 NotificacaoDatabase.getInstance(context).dao().inserir(notif)
         ).start();
 
         reagendarSeRecorrente(context, titulo, mensagem, hora, minuto,
-                recorrencia, requestCode, templateId); // ✅ passa templateId
+                recorrencia, requestCode, templateId, dataFim); // ✅ passa templateId
     }
 
     private void dispararNotificacao(Context context, String titulo, String mensagem, int notifId) {
@@ -90,7 +94,7 @@ public class LembreteReceiver extends BroadcastReceiver {
 
     private void reagendarSeRecorrente(Context context, String titulo, String mensagem,
                                        int hora, int minuto, String recorrencia,
-                                       int requestCode, long templateId) {
+                                       int requestCode, long templateId, String dataFim) {
         if (recorrencia == null || "NENHUMA".equals(recorrencia)) return;
 
         Calendar proximo = Calendar.getInstance(TimeZone.getTimeZone("America/Sao_Paulo"));
@@ -107,6 +111,30 @@ public class LembreteReceiver extends BroadcastReceiver {
             return;
         }
 
+        // ✅ Prazo encerrado: não reagenda e limpa a persistência de reboot
+        if (dataFim != null && !dataFim.isEmpty()) {
+            try {
+                SimpleDateFormat sdfFim = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
+                sdfFim.setTimeZone(TimeZone.getTimeZone("America/Sao_Paulo"));
+                Date fim = sdfFim.parse(dataFim);
+                if (fim != null) {
+                    Calendar fimDoDia = Calendar.getInstance(TimeZone.getTimeZone("America/Sao_Paulo"));
+                    fimDoDia.setTime(fim);
+                    fimDoDia.set(Calendar.HOUR_OF_DAY, 23);
+                    fimDoDia.set(Calendar.MINUTE, 59);
+                    fimDoDia.set(Calendar.SECOND, 59);
+                    if (proximo.after(fimDoDia)) {
+                        context.getSharedPreferences("lembretes_reboot", Context.MODE_PRIVATE)
+                                .edit().remove("lembrete_" + requestCode).apply();
+                        Log.d(TAG, "Prazo encerrado (" + dataFim + ") — não reagendado. requestCode=" + requestCode);
+                        return;
+                    }
+                }
+            } catch (ParseException e) {
+                Log.e(TAG, "dataFim inválida: " + dataFim);
+            }
+        }
+
         Intent novoIntent = new Intent(context, LembreteReceiver.class);
         novoIntent.putExtra("titulo", titulo);
         novoIntent.putExtra("mensagem", mensagem);
@@ -115,6 +143,7 @@ public class LembreteReceiver extends BroadcastReceiver {
         novoIntent.putExtra("recorrencia", recorrencia);
         novoIntent.putExtra("requestCode", requestCode);
         novoIntent.putExtra("templateId", templateId); // ✅
+        novoIntent.putExtra("dataFim", dataFim);
 
         PendingIntent pendingIntent = PendingIntent.getBroadcast(
                 context, requestCode, novoIntent,

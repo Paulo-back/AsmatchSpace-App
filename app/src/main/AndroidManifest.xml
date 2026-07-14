@@ -60,6 +60,7 @@
             android:name=".Presentation.ActivityView.LoginActivity"
             android:exported="true"
             android:theme="@style/Theme.ProjetoAsthmaSpace.SplashScreen">
+
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
@@ -86,7 +87,8 @@
         <!-- Activity Principal (com os fragmentos) -->
         <activity
             android:name=".Presentation.ActivityView.MainActivity"
-            android:exported="false" />
+            android:exported="false"
+            android:windowSoftInputMode="adjustResize"/>
 
         <activity android:name=".Presentation.ActivityView.AjudaActivity" />
 <!--        <activity android:name=".ActivityView.Perfil" />-->

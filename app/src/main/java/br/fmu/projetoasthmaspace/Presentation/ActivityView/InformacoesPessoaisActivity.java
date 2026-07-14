@@ -24,6 +24,7 @@ import java.io.InputStream;
 import java.util.Objects;
 
 import br.fmu.projetoasthmaspace.Core.Session.UserSessionManager;
+import br.fmu.projetoasthmaspace.Core.Util.ValidadorDataNascimento;
 import br.fmu.projetoasthmaspace.Data.Service.ViaCep.ApiViaCep;
 import br.fmu.projetoasthmaspace.Core.Util.AtualizarRequest;
 import br.fmu.projetoasthmaspace.Core.Domain.Cliente.DadosDetalhamentoCliente;
@@ -308,14 +309,16 @@ public class InformacoesPessoaisActivity extends BaseActivity {
 
         String dataExibida  = binding.edtDataNascimento.getText().toString().trim();
         String dataFormatada = null;
-        if (dataExibida.length() == 10) {
-            try {
-                String[] p = dataExibida.split("/");
-                dataFormatada = p[2] + "-" + p[1] + "-" + p[0];
-            } catch (Exception e) {
-                Toast.makeText(this, "Data de nascimento inválida.", Toast.LENGTH_SHORT).show();
+        if (!dataExibida.isEmpty()) {
+            String erroData = ValidadorDataNascimento.validar(dataExibida);
+            if (erroData != null) {
+                binding.edtDataNascimento.setError(erroData);
+                binding.edtDataNascimento.requestFocus();
+                Toast.makeText(this, erroData, Toast.LENGTH_SHORT).show();
                 return;
             }
+            String[] p = dataExibida.split("/");
+            dataFormatada = p[2] + "-" + p[1] + "-" + p[0];
         }
 
         binding.btnSalvar.setEnabled(false);

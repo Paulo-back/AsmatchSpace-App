@@ -17,6 +17,8 @@ import androidx.core.splashscreen.SplashScreen;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
+import com.google.gson.Gson;
+
 import br.fmu.projetoasthmaspace.Core.Domain.Log.LoginRequest;
 import br.fmu.projetoasthmaspace.Core.Domain.Log.TokenResponse;
 import br.fmu.projetoasthmaspace.Core.Session.UserSessionManager;
@@ -25,6 +27,7 @@ import br.fmu.projetoasthmaspace.R;
 import br.fmu.projetoasthmaspace.Data.Service.Client.ApiClient;
 import br.fmu.projetoasthmaspace.Data.Service.Client.ApiService;
 import br.fmu.projetoasthmaspace.databinding.ActivityLoginBinding;
+import br.fmu.projetoasthmaspace.exception.ErroPadrao;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
@@ -152,8 +155,9 @@ public class LoginActivity extends BaseActivity {
                     try {
                         if (response.errorBody() != null) {
                             String corpo = response.errorBody().string();
-                            if (corpo != null && !corpo.isEmpty()) {
-                                mensagemErro = corpo.replace("\"", "").trim();
+                            ErroPadrao erro = new Gson().fromJson(corpo, ErroPadrao.class);
+                            if (erro != null && erro.mensagem != null && !erro.mensagem.isEmpty()) {
+                                mensagemErro = erro.mensagem;
                             }
                         }
                     } catch (Exception ignored) {}

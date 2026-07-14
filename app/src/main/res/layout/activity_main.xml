@@ -5,13 +5,13 @@
     android:id="@+id/main"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:fitsSystemWindows="true"
+
     tools:context=".Presentation.ActivityView.MainActivity">
 
     <com.google.android.material.appbar.AppBarLayout
         android:id="@+id/appBarLayout"
         android:layout_width="match_parent"
-        android:fitsSystemWindows="true"
+
         android:layout_height="wrap_content"
         app:layout_constraintTop_toTopOf="parent">
 
@@ -97,7 +97,7 @@
 
     <FrameLayout
         android:id="@+id/frameLayout"
-        android:fitsSystemWindows="true"
+
         android:layout_width="0dp"
         android:layout_height="0dp"
         app:layout_constraintBottom_toTopOf="@+id/bottomNavigationView"

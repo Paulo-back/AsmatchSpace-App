@@ -873,7 +873,7 @@ public class LembretesActivity extends Fragment {
                     AlarmManager.RTC_WAKEUP, c.getTimeInMillis(), pendingIntent);
         }
 
-        Toast.makeText(getContext(), "DEBUG: alarme p/ " + c.getTime(), Toast.LENGTH_LONG).show();
+//        Toast.makeText(getContext(), "DEBUG: alarme p/ " + c.getTime(), Toast.LENGTH_LONG).show();
     }
 
     private void cancelarAlarmeLocal(long templateId) {

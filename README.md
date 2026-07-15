@@ -81,7 +81,7 @@ Este projeto é composto por **4 repositórios** que se integram:
 
 **Backend**
 - API REST com **Spring Boot** + **Spring Security** (JWT + BCrypt)
-- Banco de dados **PostgreSQL** hospedado no **Neon**
+- Banco de dados **PostgreSQL** hospedado no **Railway**
 - Migrações versionadas com **Flyway**
 - Controle de acesso por perfil (`ADMIN`, `USER`)
 - Queries otimizadas em lote para respeitar limites do free tier

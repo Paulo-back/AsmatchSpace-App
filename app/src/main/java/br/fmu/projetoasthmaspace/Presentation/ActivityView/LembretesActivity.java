@@ -599,7 +599,7 @@ public class LembretesActivity extends Fragment {
                     iconRecorrencia.setVisibility(View.VISIBLE);
                     iconRecorrencia.setColorFilter(Color.parseColor("#81C784"), PorterDuff.Mode.SRC_IN);
                 } else {
-                    iconRecorrencia.setVisibility(View.GONE);
+                    iconRecorrencia.setVisibility(View.INVISIBLE);
                 }
 
                 String statusIcon;
@@ -851,9 +851,10 @@ public class LembretesActivity extends Fragment {
         String dataAgendada = sdf.format(c.getTime());
         SharedPreferences prefs = requireContext()
                 .getSharedPreferences("lembretes_reboot", Context.MODE_PRIVATE);
-        // formato: titulo|mensagem|hora|minuto|recorrencia|data|templateId
+        // formato: titulo|mensagem|hora|minuto|recorrencia|data|templateId|dataFim
         String valor = titulo + "|" + mensagem + "|" + hora + "|" + minuto
-                + "|" + tipoRecorrencia + "|" + dataAgendada + "|" + templateId;
+                + "|" + tipoRecorrencia + "|" + dataAgendada + "|" + templateId
+                + "|" + (dataFim == null ? "" : dataFim);
         prefs.edit().putString("lembrete_" + requestCode, valor).apply();
 
         Log.d("Lembretes", "Agendando '" + titulo + "' para " + c.getTime()
@@ -871,6 +872,8 @@ public class LembretesActivity extends Fragment {
             alarmManager.setExactAndAllowWhileIdle(
                     AlarmManager.RTC_WAKEUP, c.getTimeInMillis(), pendingIntent);
         }
+
+        Toast.makeText(getContext(), "DEBUG: alarme p/ " + c.getTime(), Toast.LENGTH_LONG).show();
     }
 
     private void cancelarAlarmeLocal(long templateId) {

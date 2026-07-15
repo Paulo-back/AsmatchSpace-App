@@ -48,6 +48,7 @@ public class LembreteReceiver extends BroadcastReceiver {
         if (titulo == null || mensagem == null || hora < 0 || minuto < 0) return;
 
         dispararNotificacao(context, titulo, mensagem, requestCode);
+        boolean legado = (templateId == -1L);
 
         String dataHora = new SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault())
                 .format(Calendar.getInstance(TimeZone.getTimeZone("America/Sao_Paulo")).getTime());
@@ -57,8 +58,14 @@ public class LembreteReceiver extends BroadcastReceiver {
                 NotificacaoDatabase.getInstance(context).dao().inserir(notif)
         ).start();
 
-        reagendarSeRecorrente(context, titulo, mensagem, hora, minuto,
-                recorrencia, requestCode, templateId, dataFim); // ✅ passa templateId
+        if (legado) {
+            context.getSharedPreferences("lembretes_reboot", Context.MODE_PRIVATE)
+                    .edit().remove("lembrete_" + requestCode).apply();
+            Log.d(TAG, "Alarme legado extinto — requestCode=" + requestCode);
+        } else {
+            reagendarSeRecorrente(context, titulo, mensagem, hora, minuto,
+                    recorrencia, requestCode, templateId, dataFim);
+        }
     }
 
     private void dispararNotificacao(Context context, String titulo, String mensagem, int notifId) {
@@ -166,9 +173,10 @@ public class LembreteReceiver extends BroadcastReceiver {
 
         SharedPreferences prefs = context.getSharedPreferences("lembretes_reboot", Context.MODE_PRIVATE);
         String key   = "lembrete_" + requestCode;
-        // formato: titulo|mensagem|hora|minuto|recorrencia|data|templateId
+        // formato: titulo|mensagem|hora|minuto|recorrencia|data|templateId|dataFim
         String valor = titulo + "|" + mensagem + "|" + hora + "|" + minuto
-                + "|" + recorrencia + "|" + novaData + "|" + templateId;
+                + "|" + recorrencia + "|" + novaData + "|" + templateId
+                + "|" + (dataFim == null ? "" : dataFim);
         prefs.edit().putString(key, valor).apply();
 
         Log.d(TAG, "Reagendado (" + recorrencia + ") para: " + novaData

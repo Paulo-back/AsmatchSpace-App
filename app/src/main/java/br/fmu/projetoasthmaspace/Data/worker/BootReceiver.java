@@ -69,6 +69,7 @@ public class BootReceiver extends BroadcastReceiver {
                 String recorrencia = partes[4];
                 String dataStr     = partes[5];
                 long   templateId  = Long.parseLong(partes[6]);
+                String dataFim     = (partes.length >= 8 && !partes[7].isEmpty()) ? partes[7] : null;
                 int    requestCode = (int) templateId;
 
                 Calendar c = Calendar.getInstance(TimeZone.getTimeZone("America/Sao_Paulo"));
@@ -105,6 +106,7 @@ public class BootReceiver extends BroadcastReceiver {
                 lembreteIntent.putExtra("recorrencia", recorrencia);
                 lembreteIntent.putExtra("requestCode", requestCode);
                 lembreteIntent.putExtra("templateId", templateId); // ✅
+                lembreteIntent.putExtra("dataFim", dataFim);
 
                 PendingIntent pendingIntent = PendingIntent.getBroadcast(
                         context, requestCode, lembreteIntent,

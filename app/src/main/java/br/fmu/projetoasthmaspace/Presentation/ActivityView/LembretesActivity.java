@@ -170,6 +170,7 @@ public class LembretesActivity extends Fragment {
                     listaDeInstancias.addAll(response.body());
 
                     migrarLembretesAntigos(response.body()); // ← Migra lembretes antigos para o novo formato
+                    sanearAlarmesOrfaos();
 
                     atualizarPainelDeResumo();
                     atualizarTextoBotaoFiltro();
@@ -814,14 +815,38 @@ public class LembretesActivity extends Fragment {
         c.set(Calendar.MILLISECOND, 0);
 
         if (c.before(Calendar.getInstance())) {
+            int diasParaAvancar;
             if ("DIARIA".equals(tipoRecorrencia)) {
-                c.add(Calendar.DAY_OF_MONTH, 1);
+                diasParaAvancar = 1;
             } else if ("SEMANAL".equals(tipoRecorrencia)) {
-                c.add(Calendar.DAY_OF_MONTH, 7);
+                diasParaAvancar = 7;
             } else {
                 Log.d("Lembretes", "Horário já passou e sem recorrência, não agendado.");
                 return;
             }
+            while (c.before(Calendar.getInstance())) {
+                c.add(Calendar.DAY_OF_MONTH, diasParaAvancar);
+            }
+        }
+
+        // Se o próximo disparo cai depois do data_fim, o lembrete já expirou: não agenda
+        if (dataFim != null && !dataFim.isEmpty()) {
+            try {
+                SimpleDateFormat sdfFim = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
+                sdfFim.setTimeZone(TimeZone.getTimeZone("America/Sao_Paulo"));
+                Date fim = sdfFim.parse(dataFim);
+                if (fim != null) {
+                    Calendar fimDoDia = Calendar.getInstance(TimeZone.getTimeZone("America/Sao_Paulo"));
+                    fimDoDia.setTime(fim);
+                    fimDoDia.set(Calendar.HOUR_OF_DAY, 23);
+                    fimDoDia.set(Calendar.MINUTE, 59);
+                    fimDoDia.set(Calendar.SECOND, 59);
+                    if (c.after(fimDoDia)) {
+                        Log.d("Lembretes", "Template expirado (data_fim=" + dataFim + "), não agendado.");
+                        return;
+                    }
+                }
+            } catch (ParseException ignored) {}
         }
 
         // ✅ requestCode = templateId (estável, único, sem colisão)
@@ -873,7 +898,6 @@ public class LembretesActivity extends Fragment {
                     AlarmManager.RTC_WAKEUP, c.getTimeInMillis(), pendingIntent);
         }
 
-//        Toast.makeText(getContext(), "DEBUG: alarme p/ " + c.getTime(), Toast.LENGTH_LONG).show();
     }
 
     private void cancelarAlarmeLocal(long templateId) {
@@ -965,6 +989,63 @@ public class LembretesActivity extends Fragment {
                             new Intent(Intent.ACTION_BOOT_COMPLETED));
         }
     }
+
+    private void sanearAlarmesOrfaos() {
+        api.listarTemplates().enqueue(new Callback<List<LembreteTemplate>>() {
+            @Override
+            public void onResponse(Call<List<LembreteTemplate>> call,
+                                   Response<List<LembreteTemplate>> response) {
+                if (!isAdded() || !response.isSuccessful() || response.body() == null) return;
+
+                java.util.Set<Long> templatesAtivos = new java.util.HashSet<>();
+                for (LembreteTemplate t : response.body()) {
+                    templatesAtivos.add(t.id);
+                }
+
+                Context ctx = getContext();
+                if (ctx == null) return;
+                SharedPreferences prefs = ctx.getSharedPreferences(
+                        "lembretes_reboot", Context.MODE_PRIVATE);
+
+                // ── Parte 1: mata órfãos (alarme local sem template no backend)
+                for (Map.Entry<String, ?> entry : prefs.getAll().entrySet()) {
+                    if (!(entry.getValue() instanceof String)) continue;
+                    String[] p = ((String) entry.getValue()).split("\\|");
+                    if (p.length < 7) continue;
+                    try {
+                        long tid = Long.parseLong(p[6]);
+                        if (!templatesAtivos.contains(tid)) {
+                            cancelarAlarmeLocal(tid);
+                            limparHistoricoNotificacoes(tid);
+                            Log.d("Lembretes", "Órfão saneado — templateId=" + tid);
+                        }
+                    } catch (NumberFormatException ignored) {}
+                }
+
+                //(mão dupla): restaura alarmes que existem no backend
+                //    mas não têm registro local (ex: relogin após logout)
+                for (LembreteTemplate t : response.body()) {
+                    if (!prefs.contains("lembrete_" + (int) (long) t.id)) {
+                        try {
+                            String[] hm = t.horario.split(":");
+                            agendarLembrete(Integer.parseInt(hm[0]), Integer.parseInt(hm[1]),
+                                    t.dataInicio, t.titulo, "Lembrete programado!",
+                                    t.tipoRecorrencia, t.id, t.dataFim);
+                            Log.d("Lembretes", "Alarme restaurado — templateId=" + t.id);
+                        } catch (Exception e) {
+                            Log.e("Lembretes", "Falha ao restaurar templateId=" + t.id, e);
+                        }
+                    }
+                }
+            }
+
+            @Override
+            public void onFailure(Call<List<LembreteTemplate>> call, Throwable t) {
+                // Sem rede: não saneia nada — nunca cancelar por falta de informação
+            }
+        });
+    }
+
 
     @Override
     public void onDestroyView() {

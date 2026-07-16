@@ -75,7 +75,7 @@ public class AuthInterceptor implements Interceptor {
         if (!tratandoSessaoExpirada.compareAndSet(false, true)) return;
 
         Log.w(TAG, "Token rejeitado pelo servidor — encerrando sessão.");
-        session.clear();
+        session.clear(context);
 
         // Interceptor roda em thread de background; navegação vai para a main.
         new Handler(Looper.getMainLooper()).post(() -> {

@@ -130,7 +130,7 @@ public class MainActivity extends AppCompatActivity implements NavegacaoCallback
             public void onResponse(Call<DadosDetalhamentoCliente> call,
                                    Response<DadosDetalhamentoCliente> response) {
                 if (!response.isSuccessful()) {
-                    session.clear();
+                    session.clear(MainActivity.this);
                     redirecionarParaLogin();
                 }
             }

@@ -11,6 +11,7 @@ import java.io.File;
 import java.util.Map;
 
 import br.fmu.projetoasthmaspace.Core.Domain.Log.SharedPreferencesKeys;
+import br.fmu.projetoasthmaspace.Core.Util.AlarmeLembreteUtil;
 
 public class UserSessionManager {
 
@@ -150,7 +151,8 @@ public class UserSessionManager {
     }
 
 
-    public void clear() {
+    public void clear(Context context) {
+        AlarmeLembreteUtil.cancelarTodos(context);
         prefs.edit().clear().apply();
     }
 
@@ -164,6 +166,6 @@ public class UserSessionManager {
             }
         }
 
-        clear();
+        clear(context);
     }
 }

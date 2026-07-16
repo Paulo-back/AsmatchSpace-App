@@ -131,7 +131,7 @@ public class LoginActivity extends BaseActivity {
                     String token = response.body().token;
 
                     UserSessionManager session = new UserSessionManager(LoginActivity.this);
-                    session.clear();
+                    session.clear(LoginActivity.this);
                     session.saveToken(token);
                     AuthInterceptor.resetSessaoExpirada(); //rearma o tratamento de 401
 

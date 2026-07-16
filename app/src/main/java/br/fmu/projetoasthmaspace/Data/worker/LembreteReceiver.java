@@ -35,20 +35,29 @@ public class LembreteReceiver extends BroadcastReceiver {
         SharedPreferences config = context.getSharedPreferences("CONFIG", Context.MODE_PRIVATE);
         if (!config.getBoolean("lembretes_ativos", true)) return;
 
-        String titulo      = intent.getStringExtra("titulo");
-        String mensagem    = intent.getStringExtra("mensagem");
-        int    hora        = intent.getIntExtra("hora", -1);
-        int    minuto      = intent.getIntExtra("minuto", -1);
+        String titulo = intent.getStringExtra("titulo");
+        String mensagem = intent.getStringExtra("mensagem");
+        int hora = intent.getIntExtra("hora", -1);
+        int minuto = intent.getIntExtra("minuto", -1);
         String recorrencia = intent.getStringExtra("recorrencia");
         String dataFim = intent.getStringExtra("dataFim");
-        long   templateId  = intent.getLongExtra("templateId", -1L); // ✅
-        int    requestCode = intent.getIntExtra("requestCode",
+        long templateId = intent.getLongExtra("templateId", -1L); // ✅
+        int requestCode = intent.getIntExtra("requestCode",
                 Math.abs((titulo + "_" + hora + "_" + minuto).hashCode()));
 
         if (titulo == null || mensagem == null || hora < 0 || minuto < 0) return;
 
-        dispararNotificacao(context, titulo, mensagem, requestCode);
+        // ✅ Legado (era pré-templateId) ou órfão (sem registro nas prefs): morre mudo
         boolean legado = (templateId == -1L);
+        SharedPreferences reboot = context.getSharedPreferences("lembretes_reboot", Context.MODE_PRIVATE);
+        if (legado || !reboot.contains("lembrete_" + requestCode)) {
+            reboot.edit().remove("lembrete_" + requestCode).apply();
+            Log.d(TAG, "Alarme legado/órfão extinto sem notificar — requestCode=" + requestCode);
+            return;
+        }
+
+        dispararNotificacao(context, titulo, mensagem, requestCode);
+
 
         String dataHora = new SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault())
                 .format(Calendar.getInstance(TimeZone.getTimeZone("America/Sao_Paulo")).getTime());
@@ -58,15 +67,11 @@ public class LembreteReceiver extends BroadcastReceiver {
                 NotificacaoDatabase.getInstance(context).dao().inserir(notif)
         ).start();
 
-        if (legado) {
-            context.getSharedPreferences("lembretes_reboot", Context.MODE_PRIVATE)
-                    .edit().remove("lembrete_" + requestCode).apply();
-            Log.d(TAG, "Alarme legado extinto — requestCode=" + requestCode);
-        } else {
-            reagendarSeRecorrente(context, titulo, mensagem, hora, minuto,
-                    recorrencia, requestCode, templateId, dataFim);
-        }
+        reagendarSeRecorrente(context, titulo, mensagem, hora, minuto,
+                recorrencia, requestCode, templateId, dataFim);
     }
+
+
 
     private void dispararNotificacao(Context context, String titulo, String mensagem, int notifId) {
         NotificationManager manager =
@@ -182,4 +187,6 @@ public class LembreteReceiver extends BroadcastReceiver {
         Log.d(TAG, "Reagendado (" + recorrencia + ") para: " + novaData
                 + " " + hora + ":" + minuto + " requestCode=" + requestCode);
     }
+
+
 }
